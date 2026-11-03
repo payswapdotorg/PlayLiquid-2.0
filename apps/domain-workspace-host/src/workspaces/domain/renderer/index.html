@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    />
+    <title>Domain Workspace — PlayLiquid</title>
+    <link rel="stylesheet" href="./domain.css" />
+  </head>
+  <body data-route="#/">
+    <!-- ---------------------------------------------------------- top bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="icon-btn" type="button" data-nav="back" title="Back to ZCode — the upstream workspace is never modified, only covered">
+          <span aria-hidden="true">&#9633;</span>
+          <span class="sr-only">Back to ZCode</span>
+        </button>
+        <span class="topbar-title">Domain Workspace</span>
+        <span class="pill">Milestone 1 &middot; Foundation</span>
+      </div>
+      <nav class="topbar-right" aria-label="Domain workspace sections">
+        <button class="nav-btn is-active" type="button" data-route-btn="#/" id="btn-overview">Overview</button>
+        <button class="nav-link" type="button" data-route-btn="#/about" id="btn-about">About this workspace</button>
+        <button class="back-btn" type="button" data-nav="back" title="Switch back to the ZCode workspace">&laquo;&nbsp;Back to ZCode</button>
+      </nav>
+    </header>
+
+    <!-- ------------------------------------------------------ route: #/ -->
+    <main id="route-overview" class="route" data-route-panel="#/">
+      <p class="eyebrow">Independent workspace environment</p>
+      <h1 class="headline">The domain workspace is ready.</h1>
+      <p class="lede">
+        This surface is the second workspace of the application. It lives beside the
+        general-purpose ZCode workspace — never on top of it, never replacing it.
+        Switching between the two environments slides horizontally and preserves the
+        complete state of both. Domain-specific product surfaces will be built here in
+        later milestones; this foundation carries none of them yet.
+      </p>
+
+      <section class="cards" aria-label="Foundation guarantees">
+        <article class="card">
+          <h2>Isolated navigation state</h2>
+          <p>
+            This workspace owns its own route stack. The route shown below changes only
+            through this page, and survives every workspace switch and app restart.
+          </p>
+          <footer class="card-footer" id="route-readout" data-testid="domain-current-route">current route: #/</footer>
+        </article>
+        <article class="card">
+          <h2>ZCode stays mounted</h2>
+          <p>
+            The upstream renderer is never unmounted or reloaded during a switch — it is
+            translated offscreen and kept fully alive (tasks, terminal, browser, auth).
+          </p>
+          <footer class="card-footer">see docs/architecture/domain-workspace-host.md</footer>
+        </article>
+        <article class="card">
+          <h2>Horizontal transitions</h2>
+          <p>
+            Workspace changes animate both surfaces sideways with an ease-out curve,
+            collapsing to an instant swap when reduced motion is preferred.
+          </p>
+          <footer class="card-footer">250 ms &middot; ease-out cubic &middot; reversible mid-flight</footer>
+        </article>
+      </section>
+
+      <aside class="callout">
+        <p>
+          Upstream ZCode source is preserved byte-for-byte. Everything in this
+          environment is served from <code>apps/domain-workspace-host/</code>, an
+          additive host layer with no upstream edits.
+        </p>
+      </aside>
+    </main>
+
+    <!-- -------------------------------------------------- route: #/about -->
+    <main id="route-about" class="route" data-route-panel="#/about" hidden>
+      <p class="eyebrow">Independent workspace environment</p>
+      <h1 class="headline">About this workspace</h1>
+      <p class="lede">
+        The domain workspace is an ordinary Chromium surface owned by the PlayLiquid
+        host layer. It runs from its own files under
+        <code>apps/domain-workspace-host/</code>, in a dedicated, non-persistent session
+        partition, sandboxed, with node integration disabled.
+      </p>
+      <section class="cards" aria-label="About facts">
+        <article class="card">
+          <h2>Provenance</h2>
+          <p>
+            Every file of this surface is new. The upstream ZCode tree at the fork
+            baseline is untouched — machine-checked by
+            <code>scripts/verify-upstream-integrity.mjs</code>.
+          </p>
+          <footer class="card-footer">additive only &middot; zero upstream edits</footer>
+        </article>
+        <article class="card">
+          <h2>State contract</h2>
+          <p>
+            Switching workspaces never resets either side: the upstream workbench keeps
+            tasks, sessions, terminal, browser and composer state; this page keeps its
+            route and view state.
+          </p>
+          <footer class="card-footer">no unmount &middot; no reload &middot; no reset</footer>
+        </article>
+        <article class="card">
+          <h2>What comes next</h2>
+          <p>
+            Later milestones will build real domain product surfaces here. The
+            foundation intentionally ships none of them.
+          </p>
+          <footer class="card-footer">milestone 1 &middot; foundation only</footer>
+        </article>
+      </section>
+    </main>
+
+    <!-- ------------------------------------------------------- status bar -->
+    <footer class="statusbar" aria-label="Live host state">
+      <div class="statusbar-row">
+        <span class="stat"><span class="stat-key">route /</span><span class="stat-value" id="stat-route">#/</span></span>
+        <span class="stat"><span class="stat-key">workspaces</span><span class="stat-value" id="stat-workspaces">2 registered &middot; active: Domain Workspace</span></span>
+        <span class="stat"><span class="stat-key">host mode</span><span class="stat-value" id="stat-hostmode">cover-slide</span></span>
+        <span class="stat"><span class="stat-key">transition</span><span class="stat-value" id="stat-transition">250ms ease-out cubic &middot; horizontal</span></span>
+      </div>
+      <div class="statusbar-row statusbar-row-end">
+        <span class="stat"><span class="stat-key">upstream baseline</span><span class="stat-value" id="stat-baseline">&mdash;</span></span>
+      </div>
+    </footer>
+
+    <script src="./domain.js"></script>
+  </body>
+</html>
