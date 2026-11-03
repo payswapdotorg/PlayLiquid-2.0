@@ -1,0 +1,28 @@
+{
+  "name": "@playliquid/gameos",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "PlayLiquid GameOS domain modules and the World Projects console pane (worker-b port): game-contracts, package-system, artifact-store, package-registry, git-lineage, game-ir, platform-contracts, community and the gameos-projects workbench, consolidated as one workspace module with the in-process console host that composes the real domain services behind the workbench's typed data/command ports.",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix"
+  },
+  "dependencies": {
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.9",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.1"
+  }
+}

@@ -256,7 +256,13 @@ export default defineConfig(({ command, mode }) => {
       emptyOutDir: true,
       // 生产包若直接暴露 sourceMappingURL，攻击者可在客户端侧还原业务源码。
       // 生产使用 hidden sourcemap：本地/发布流程保留 .map，不在产物里暴露映射入口。
-      sourcemap: mode === "production" ? "hidden" : true,
+      // ZCODE_BUILD_SOURCEMAPS=0 允许低内存构建环境关闭 sourcemap 生成（默认行为不变）。
+      sourcemap:
+        mode === "production"
+          ? process.env.ZCODE_BUILD_SOURCEMAPS === "0"
+            ? false
+            : "hidden"
+          : true,
       rollupOptions: {
         // 多入口：主窗口 + 进程监控 + CUA 权限拖拽浮窗
         input: {

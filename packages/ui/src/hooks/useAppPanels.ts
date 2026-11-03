@@ -41,6 +41,7 @@ import {
   openWorkflowWorkspaceSidePane,
   openWorkflowArtifactSidePane,
   activateDeveloperToolsSidePane,
+  activatePlayLiquidConsoleSidePane,
   activatePluginMarketSidePane,
   activateNewTabSidePane,
   openBrowserSidePane,
@@ -917,6 +918,17 @@ export function useAppPanels(options: {
     });
   }, [commitOpenedSidePaneState, revealSidePaneForCurrentOwner, workspaceAbsPath]);
 
+  const handleOpenPlayLiquidConsole = useCallback(() => {
+    revealSidePaneForCurrentOwner();
+    commitOpenedSidePaneState((current) => {
+      const next = activatePlayLiquidConsoleSidePane(current);
+      logger.info(
+        `[App] 打开右侧面板 mode=playliquid-console workspace=${workspaceAbsPath} tabs=${next.tabs.length}`,
+      );
+      return next;
+    });
+  }, [commitOpenedSidePaneState, revealSidePaneForCurrentOwner, workspaceAbsPath]);
+
   const handleOpenTerminalTab = useCallback(() => {
     if (isOfficeMode) return;
     revealSidePaneForCurrentOwner();
@@ -1707,6 +1719,7 @@ export function useAppPanels(options: {
     handleOpenTreemapping,
     handleOpenWhiteboard,
     handleOpenDeveloperTools,
+    handleOpenPlayLiquidConsole,
     handleOpenPluginMarket,
     handleOpenNewSidePaneTab,
     handleOpenTerminalTab,

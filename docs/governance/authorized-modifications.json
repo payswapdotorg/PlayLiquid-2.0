@@ -1,0 +1,1032 @@
+{
+  "version": 1,
+  "baseline": "a9fe401eede6e6e5e01be9048679c206fe6f02d9",
+  "policy": "controlled-change-v1",
+  "retiredPaths": [
+    "apps/domain-workspace-host/",
+    ".github/workflows/playliquid-integrity.yml"
+  ],
+  "protectedSurfaces": [
+    "apps/zcode-cli/packages/core/src/",
+    "packages/services/src/session/",
+    "packages/services/src/zcode-session/",
+    "packages/shared/src/sqlite-migrations/",
+    "packages/provider/",
+    "packages/provider-node/",
+    "packages/model-option-map/",
+    "packages/services/src/model-provider/",
+    "packages/services/src/credential/",
+    "packages/services/src/providers/",
+    "packages/services/src/cua-permission-broker/",
+    "packages/rpc/",
+    "packages/client/",
+    "packages/server/",
+    "packages/shared/src/zcode-protocol/",
+    "packages/desktop/src/main/browserView/",
+    "packages/services/src/terminal/",
+    "packages/services/src/file/",
+    "packages/services/src/project/",
+    "packages/services/src/project-storage/",
+    "packages/services/src/plugins/",
+    "packages/services/src/plugin-ui-bridge/",
+    "packages/shared/src/channels.ts",
+    "packages/shared/src/security/",
+    "scripts/architecture/"
+  ],
+  "modifications": [
+    {
+      "path": ".gitignore",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Ignore qa/desktop-release/evidence/ run outputs (report.json/screenshots/logs are per-run regenerable; keeps the working tree and the governance verifier's untracked scan clean).",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "DESIGN.md",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Update the only concrete theme-mode color references (remote-foreground-muted light/dark hexes) to the PlayLiquid palette; layout and type-scale rules untouched.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "README.en.md",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Rebrand heading, logo alt text, product intro and CLI-distribution headings/cross-references to PlayLiquid; add the 'PlayLiquid — powered by the ZCode application foundation (Apache-2.0).' line; version history table, commands, paths and env vars kept intact.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "README.md",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Chinese README rebrand: heading, logo alt, product intro, CLI-distribution headings/cross-references to PlayLiquid; foundation line added; version history table, commands, paths, env vars and /Applications/ZCode.app artifact references kept intact.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "architecture-policy.yaml",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Two additions only: (1) registered the playliquid-gameos managed module row (roots packages/playliquid-gameos, requires [], publicEntrypoints packages/playliquid-gameos/src/index.ts, layers adapters: ., owner worker-b) copied from the sqlite-migrations row format, matching the package's own module.ts manifest; (2) one disable-count exception for packages/playliquid-gameos/src/game-contracts/git.ts — the control-character validation regex of the branch/tag name vocabulary carries a single verbatim-upstream eslint-disable (same precedent as the reference repo's gen-ui-tweak-runtime-lint exception). Verified: node scripts/architecture/architecture-check.mjs check → 0 violations (full and --changed scopes).",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/desktop/build/icon.icns",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — PlayLiquid macOS icon set.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icon.ico",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — PlayLiquid Windows icon set.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icon.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) of the reference PlayLiquid icon family — 1024 master (412095 bytes).",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icon_installer.icns",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — DMG volume/installer icon.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icon_installer.ico",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — NSIS installer icon.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icon_installer.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — installer-dedicated artwork.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icon_windows.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — Windows taskbar/window resource.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/1024x1024.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 1024.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/128x128.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 128.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/16x16.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 16.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/24x24.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 24.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/256x256.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 256.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/32x32.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 32.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/48x48.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 48.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/512x512.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 512 (also the AppImage extraResources icon source).",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/build/icons/64x64.png",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Binary copy (exact bytes) — hicolor 64.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/dev-app-update.yml",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Dev electron-updater cache dir playliquid-gameos-dev-updater (mirrors identity updaterCacheDirName; isolated from the fork's zcode-dev-updater). Generic localhost:8081 placeholder + useMultipleRangeRequest:false + detectUpdateChannel:false (config) unchanged — auto-update stays disabled.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/electron-builder.config.js",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Identity-scoped wiring only (targets/mac/nsis/pacman structure kept from our v3.17.2 baseline): homepage github.com/payswapdotorg/PlayLiquid-2.0 + author PlayLiquid <noreply@playliquid.org> in extraMetadata (deb/fpm metadata validation), protocols register desktopProductIdentity.deepLinkScheme (playliquid) instead of zcode, linux maintainer PlayLiquid + category Development;Game, Linux artifact base name PlayLiquid-GameOS via resolveDesktopLinuxArtifactBaseName, productName fallbacks and preview mac-signing error derive from the identity module, and .zcode-install-manifest is now written for EVERY Windows target (reference condition) so the Windows smoke battery can verify open-source builds.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/package.json",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Identity fields only: description 'PlayLiquid GameOS Desktop App', author 'PlayLiquid', productName 'PlayLiquid GameOS' (electron-builder default). The internal package name @zcode/desktop is deliberately unchanged.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/scripts/bundle.mjs",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Ported the reference's --targets/-t (ZCODE_BUILDER_TARGETS) electron-builder variadic target list with known-target validation, required by the release workflow's single-pass Windows nsis,zip build; identity params were already module-driven; our newer mirror-fallback/createBundleProcessEnvs/retry logic and stampMacosUpdateManifests kept.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/scripts/desktop-product-identity.d.mts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Colocated TS declarations kept in sync with the new identity module exports (new fields + new exported tables/functions).",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/scripts/desktop-product-identity.mjs",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "RW-002 identity single source of truth: replaced the inherited ZCode identity table (dev.zcode.app / ZCode / zcode) with the proven PlayLiquid GameOS identity (org.playliquid.gameos / PlayLiquid GameOS / playliquid-gameos / PlayLiquid-GameOS / playliquid:// / ~/.playliquid-gameos / remoteUpdateFeedEnabled:false), added desktopApplicationNames, desktopDeepLinkSchemes, resolveDesktopLinuxArtifactBaseName; production/preview flavors stay parallel-installable.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/about.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "About dialog strings: ABOUT_APPLICATION_NAME -> 'PlayLiquid Desktop App', zh/en about titles and copyright lines renamed to PlayLiquid; logic and APIs untouched.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/desktop/src/main/desktopDataBaseDirBootstrap.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "RW-002 data-root isolation ported from the reference: services-layer data defaults to ~/.playliquid-gameos/.zcode instead of ZCode's ~/.zcode (custom dataBaseDir in setting.json and pre-set ZCODE_DESKTOP_HOME_DIR keep upstream priority; the product root is injected as the settings anchor). Our baseline had the default anchored at the user home (i.e. ~/.zcode) which would have collided with a real ZCode install.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/desktopDeepLinkUrl.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Deep-link parsing accepts the whitelisted schemes (playliquid / playliquid-preview + fork-compat zcode) via desktopDeepLinkSchemes instead of only zcode; registration is deliberately NOT done here.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/desktopLinuxAppImageIcon.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "AppImage user-level hicolor icon name derives from the identity linuxExecutableName (playliquid-gameos.png) instead of zcode.png.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/desktopLinuxDeepLinkRegistration.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "User-level desktop entry / MIME ownership follow the product identity: playliquid-gameos.desktop, x-scheme-handler/playliquid, ownership marker 'Comment=PlayLiquid GameOS Desktop App', Categories Development;Game, productName/iconName defaults from the identity module (runtime identity uses the compile-time flavor).",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/desktopOAuthDeepLink.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "registerDeepLinkProtocol registers only the compile-time flavor's deepLinkScheme (playliquid) — a PlayLiquid install never steals ZCode's zcode:// handler; external-link dialog copy carries the PlayLiquid GameOS product name. Our newer Windows '--' argv hardening was kept (the reference predates it).",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/desktopRuntimeEnv.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "runtimeApplicationName derives from desktopApplicationNames (PlayLiquid GameOS Dev/Preview/production) so app.name, window title, single-instance lock and appData/<name> userData/sessionData are separated from any ZCode profile; runtimeHomePath now ignores the product-injected ZCODE_DESKTOP_HOME_DIR (data-root bootstrap value) so Electron app home stays the real user home.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/forceUpdateGuard.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Force-update dialog copy derives from the identity module (no hardcoded ZCode strings) for the day a PlayLiquid-owned feed exists; the guard itself is skipped at runtime while remoteUpdateFeedEnabled is false.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/main/index.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "CRITICAL updater safety: initAutoUpdater's enabled condition and the remote force-update gate now additionally require desktopProductIdentities[ZCODE_PRODUCT_FLAVOR].remoteUpdateFeedEnabled (false for both flavors) on top of our baseline's build-time ZCODE_AUTO_UPDATE_ENABLED — the ZCode/Z.AI feed can never silently replace a PlayLiquid install; imports desktopProductIdentities from the identity module. (userData finding: app.setPath userData/sessionData derives from runtimeApplicationName — no hardcoded zcode path, no change needed there.)",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/desktop/src/renderer/cua-permission-panel.html",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "'ZCode Computer Use' -> 'PlayLiquid Computer Use' in the panel title and the draggable permission tile label; styling and script untouched.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/desktop/src/renderer/index.html",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Desktop entry title -> PlayLiquid; #loading splash badge restyled to PlayLiquid navy gradient with the teal droplet ProductMark replacing the inline Z SVG; body.zcode-startup-ready dismissal mechanism and class names preserved.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/desktop/src/renderer/plugin-sandbox.html",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Sandbox window title 'ZCode Plugin Sandbox' -> 'PlayLiquid Plugin Sandbox'.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/desktop/test/desktopProductIdentity.test.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-c-packaging-release",
+      "owner": "worker-c",
+      "reason": "Baseline vitest suite asserted the old ZCode identity constants; updated expected objects to the PlayLiquid GameOS tables and added RW-002 isolation + remote-update-feed-disabled assertions so the suite does not fail against the ported module.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-c-packaging-release>"
+    },
+    {
+      "path": "packages/shared/src/desktopMenu.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "App menu / tray / endpoint label values renamed to PlayLiquid in zh-CN and en-US; message ids and {appName} interpolations untouched.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/package.json",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Added the single workspace dependency \"@playliquid/gameos\": \"workspace:*\" (alphabetical position among dependencies) so the side-pane content switch can mount PlayLiquidConsolePane from the consolidated GameOS module.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/App.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Destructured handleOpenPlayLiquidConsole from useAppPanels and passed it to the single <WorkspaceShellLayout> render site next to handleOpenDeveloperTools.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/WelcomeScreen.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Login logo badge shell restyled from black gradient to PlayLiquid navy; aria-label 'ZCode' -> 'PlayLiquid'; logo size class tuned for the droplet mark.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/WindowsTopLeftLogo.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Windows top-left logo aria-label 'ZCode' -> 'PlayLiquid' (data-testid settings-logo kept); visual mark updates come from ZCodeStartupLogoBadge.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/WorkspaceSidebarFooter.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Fallback profile display name 'ZCode' -> 'PlayLiquid' and avatar fallback letter 'Z' -> 'P'; all props/behavior unchanged.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/app-shell/AnimatedSidePanePanel.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Launcher integration: (1) import PlayLiquidConsolePane from @playliquid/gameos and Gamepad2Icon from lucide-react; (2) onOpenPlayLiquidConsole: () => void added to the component's inline props type and destructured; (3) openTabLauncherItemById gains the playliquid-console row (label sidePane.playliquidConsole, description sidePane.launcher.playliquidConsole, Gamepad2Icon, onOpen onOpenPlayLiquidConsole); (4) content switch gains tab.type === \"playliquid-console\" ? <PlayLiquidConsolePane /> before the terminal branch — the pane fills the TabsContent chrome (h-full min-h-0) and the whole panel already sits inside the shared ScopedErrorBoundary, mirroring the developer-tools pattern; (5) SidePaneTabOverview labels gain playLiquidConsoleTitle.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/app-shell/SidePaneTabOverview.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Added labels.playLiquidConsoleTitle to the two useMemo dependency arrays (title/type-label projections now depend on it), matching how developerToolsTitle is listed.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/app-shell/SidePaneTabTrigger.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "SidePaneTabIcon renders Gamepad2Icon for tab.type === \"playliquid-console\" (same glyph as the launcher row, so launcher → tab does not jump icons); getSidePaneTabTitle returns formatMessage({ id: \"sidePane.playliquidConsoleTab\" }) for the type.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/app-shell/WorkspaceShellLayout.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Destructured handleOpenPlayLiquidConsole from WorkspaceShellLayoutProps and passed onOpenPlayLiquidConsole={handleOpenPlayLiquidConsole} to AnimatedSidePanePanel next to onOpenDeveloperTools.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/app-shell/animatedSidePanePanelModel.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "New Tab launcher model: added \"playliquid-console\" to the OpenTabLauncherItemId union and pushed it unconditionally after review in resolveOpenTabLauncherItemIds — built-in order files, browser, terminal, review, playliquid-console, then the existing conditional items (sites, selection-side-conversation, developer-tools). Existing entries untouched.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/app-shell/sidePaneTabPresentation.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Tab presentation: playLiquidConsoleTitle added to SidePaneTabPresentationLabels (required string, construction site updated in AnimatedSidePanePanel); getSidePaneTabSearchHint gains the playliquid-console hint (\"playliquid console gameos world projects package registry community review\"); getLocalizedSidePaneTabTitle maps sidePane.playliquidConsoleTab; getSidePaneTabTypeLabel returns the new label for the tab type.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/app-shell/types.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "WorkspaceShellLayoutProps gains handleOpenPlayLiquidConsole: () => void right after handleOpenDeveloperTools.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/components/mobile-ui/ZCodeAppLogo.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "App logo asset dependency (logo-zai.svg) replaced by an inline PlayLiquid navy rounded-square + droplet SVG; data-app-logo value and decorative semantics kept.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/components/ui/ZCodeAboutLogo.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "ZCodeAboutLogo: Z mark replaced with the droplet ProductMark; ZCodeWordmarkLogo rebuilt as droplet + 'PlayLiquid' SVG wordmark; component names, exports and props preserved.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/highspeed/HighspeedShareNoticeCard.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Share card title aria-label 'ZCode' -> 'PlayLiquid'; share dialog brand chip now renders the inline droplet ProductMark instead of the legacy zai-logo.png bitmap.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/highspeed/highspeed-activation.css",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Dark composer surface hex realigned to the PlayLiquid panel color; Highspeed purple accent/glow semantics unchanged.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/highspeed/highspeed-share.css",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Light/dark share card and share dialog surfaces, borders, text and muted colors realigned to the PlayLiquid palette; download CTA now uses the PlayLiquid primary action colors per theme; data-viz bar colors and purple model accents unchanged.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/hooks/useAppPanels.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "handleOpenPlayLiquidConsole mirroring handleOpenDeveloperTools (revealSidePaneForCurrentOwner + commitOpenedSidePaneState over activatePlayLiquidConsoleSidePane + mode=playliquid-console log line); import of activatePlayLiquidConsoleSidePane; exported in the hook's return object next to the sibling handlers.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/i18n/locales/en-US.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Brand sweep in message values only: 136 occurrences of 'ZCode' -> 'PlayLiquid' across 130 values; keys, ids, interpolation tokens and lowercase technical identifiers (~/.zcode, .zcodeignore, x-zcode-bot-secret, https://zcode.z.ai) preserved.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/i18n/locales/zh-CN.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Brand sweep in message values only: 135 occurrences of 'ZCode' -> 'PlayLiquid' across 129 values; keys, ids, interpolation tokens and lowercase technical identifiers preserved.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/lib/workspaceSidePane.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Side-pane tab type: PlayLiquidConsoleSidePaneTab (singleton id \"playliquid-console\", mirroring DeveloperToolsSidePaneTab including the string|null owner fields of every sibling), added to the WorkspaceSidePaneTab union; createPlayLiquidConsoleSidePaneTab; activatePlayLiquidConsoleSidePane mirroring activateDeveloperToolsSidePane; visibility scope: playliquid-console joins the git/developer-tools/plugin-market/treemapping always-visible-within-workspace case. No existing case changed.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/root/PostUpdateReleaseNotesDialog.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Release notes header icon alt text 'ZCode' -> 'PlayLiquid'.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/root/RootStartupLoading.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "ZCodeStartupLogoBadge shell gradient -> PlayLiquid navy; ZCodeStartupLogo replaced with the animated droplet ProductMark; component names, props, exports and pulse animation preserved.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/src/styles.css",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "All four theme blocks (@theme light, .dark, .theme-zai-light, .theme-zai-dark) recolored to the PlayLiquid light/dark palettes; --font-sans added with Inter first; :root remote-continuity tokens moved to the navy family; no CSS variable, class or directive renamed.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "packages/ui/tsconfig.json",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Added project reference { \"path\": \"../playliquid-gameos\" } so tsc -b resolves @playliquid/gameos through the module's declaration output (dist/*.d.ts, emitDeclarationOnly build like the @zcode/shared precedent) instead of pulling GameOS sources into the ui program's inputs. Comment documents the rationale next to the existing rpc reference note.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/web/index.html",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-a-theme-branding",
+      "owner": "worker-a",
+      "reason": "Web entry title -> PlayLiquid; meta theme-color, browser theme-surface colors and bootstrap fallbacks aligned to the PlayLiquid palette; boot-loading shell restyled navy with the droplet ProductMark; theme bootstrap script logic untouched.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-a-theme-branding>"
+    },
+    {
+      "path": "scripts/engineering-test-files.json",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "worker-b-newtab-console",
+      "owner": "worker-b",
+      "reason": "Registered the six new engineering (vitest) test files: packages/playliquid-gameos/src/console/console-host.test.ts, packages/playliquid-gameos/src/gameos-projects/{fakes,projects-store,projects-store-refusals,view-model}.test.ts and packages/ui/src/app-shell/animatedSidePanePanelModel.test.ts. Additions only, inserted in the packages block; no existing entry reordered or removed.",
+      "tests": [
+        "pnpm lint",
+        "engineering vitest",
+        "architecture:check"
+      ],
+      "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/v4/ConversationDraftEmptyState.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "tl-integration",
+      "owner": "tl",
+      "reason": "TL branding-gap patch: replace Z watermark (inline SVG + dark Z.svg asset) with PlayLiquid droplet watermark in the draft empty-state hero",
+      "tests": [
+        "pnpm lint",
+        "desktop production build",
+        "packaged-app CDP session"
+      ],
+      "rollback": "git revert <tl integration commit>"
+    },
+    {
+      "path": "packages/desktop/vite.config.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "tl-integration",
+      "owner": "tl",
+      "reason": "TL build-infra: env-gated ZCODE_BUILD_SOURCEMAPS=0 for low-memory build environments (default hidden-sourcemap behavior unchanged for CI)",
+      "tests": [
+        "pnpm lint",
+        "desktop production build",
+        "packaged-app CDP session"
+      ],
+      "rollback": "git revert <tl integration commit>"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "tl-integration",
+      "owner": "tl",
+      "reason": "TL integration: lockfile absorbs @playliquid/gameos workspace package deps",
+      "tests": [
+        "pnpm lint",
+        "desktop production build",
+        "packaged-app CDP session"
+      ],
+      "rollback": "git revert <tl integration commit>"
+    }
+  ]
+}

@@ -25,10 +25,15 @@ describe("desktop product identity", () => {
   it("ZCODE_ENV=test 使用可与生产版并排安装的 Preview 身份", () => {
     expect(resolveDesktopProductIdentity({ ZCODE_ENV: "test" })).toEqual({
       flavor: "preview",
-      appId: "dev.zcode.app.preview",
-      productName: "ZCode Preview",
-      linuxExecutableName: "zcode-preview",
-      linuxPackageName: "zcode-preview",
+      appId: "org.playliquid.gameos.preview",
+      productName: "PlayLiquid GameOS Preview",
+      linuxExecutableName: "playliquid-gameos-preview",
+      linuxPackageName: "playliquid-gameos-preview",
+      linuxArtifactBaseName: "PlayLiquid-GameOS-Preview",
+      deepLinkScheme: "playliquid-preview",
+      linuxDataRootDirName: ".playliquid-gameos",
+      updaterCacheDirName: "playliquid-gameos-preview-updater",
+      remoteUpdateFeedEnabled: false,
       cuaHelperInstallVariant: "preview",
     });
   });
@@ -65,7 +70,7 @@ describe("desktop product identity", () => {
     );
   });
 
-  it("产物后缀只标记后端环境，生产后端的 Preview 包靠 productName 区分", () => {
+  it("产物后缀只标记后端环境，生产后端的 Preview 包靠 linuxArtifactBaseName/productName 区分", () => {
     expect(resolveDesktopArtifactSuffix({ ZCODE_ENV: "test" })).toBe("_TEST");
     expect(resolveDesktopArtifactSuffix({ ZCODE_ENV: "production" })).toBe("");
     expect(
@@ -80,10 +85,15 @@ describe("desktop product identity", () => {
     );
     expect(desktopProductIdentities.production).toEqual({
       flavor: "production",
-      appId: "dev.zcode.app",
-      productName: "ZCode",
-      linuxExecutableName: "zcode",
-      linuxPackageName: "zcode",
+      appId: "org.playliquid.gameos",
+      productName: "PlayLiquid GameOS",
+      linuxExecutableName: "playliquid-gameos",
+      linuxPackageName: "playliquid-gameos",
+      linuxArtifactBaseName: "PlayLiquid-GameOS",
+      deepLinkScheme: "playliquid",
+      linuxDataRootDirName: ".playliquid-gameos",
+      updaterCacheDirName: "playliquid-gameos-updater",
+      remoteUpdateFeedEnabled: false,
       cuaHelperInstallVariant: null,
     });
   });
@@ -113,6 +123,44 @@ describe("desktop product identity", () => {
   });
 
   it("开发态继续使用独立 AUMID，避免污染打包版 Shell 身份", () => {
-    expect(resolveWindowsAppUserModelId({}, { isPackaged: false })).toBe("cn.aminer.zcode");
+    // RW-002：dev AUMID 不得借用 fork 上游的 cn.aminer.zcode，也不得与任一打包身份相同。
+    const devAumid = resolveWindowsAppUserModelId({}, { isPackaged: false });
+    expect(devAumid).toBe("org.playliquid.gameos.dev");
+    expect(devAumid).not.toBe("cn.aminer.zcode");
+    expect(devAumid).not.toBe(desktopProductIdentities.production.appId);
+  });
+
+  it("RW-002：PlayLiquid 身份与 ZCode 上游身份全面隔离", () => {
+    const zcodeUpstream = {
+      appId: "dev.zcode.app",
+      previewAppId: "dev.zcode.app.preview",
+      productName: "ZCode",
+      previewProductName: "ZCode Preview",
+      linuxExecutableName: "zcode",
+      previewLinuxExecutableName: "zcode-preview",
+      linuxPackageName: "zcode",
+      deepLinkScheme: "zcode",
+      dataRootDirName: ".zcode",
+    } as const;
+    for (const identity of [
+      desktopProductIdentities.production,
+      desktopProductIdentities.preview,
+    ]) {
+      expect(identity.appId).not.toBe(zcodeUpstream.appId);
+      expect(identity.appId).not.toBe(zcodeUpstream.previewAppId);
+      expect(identity.productName).not.toBe(zcodeUpstream.productName);
+      expect(identity.productName).not.toBe(zcodeUpstream.previewProductName);
+      expect(identity.linuxExecutableName).not.toBe(zcodeUpstream.linuxExecutableName);
+      expect(identity.linuxExecutableName).not.toBe(zcodeUpstream.previewLinuxExecutableName);
+      expect(identity.linuxPackageName).not.toBe(zcodeUpstream.linuxPackageName);
+      expect(identity.deepLinkScheme).not.toBe(zcodeUpstream.deepLinkScheme);
+      expect(identity.linuxDataRootDirName).not.toBe(zcodeUpstream.dataRootDirName);
+    }
+  });
+
+  it("RW-002：远端更新源在 PlayLiquid 专属 feed 存在前保持关闭", () => {
+    // ZCode/Z.AI 的更新 manifest 只分发 ZCode 安装包；对 PlayLiquid 应用会静默替换产品。
+    expect(desktopProductIdentities.production.remoteUpdateFeedEnabled).toBe(false);
+    expect(desktopProductIdentities.preview.remoteUpdateFeedEnabled).toBe(false);
   });
 });

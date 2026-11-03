@@ -5,7 +5,6 @@ import shareCardDarkBackgroundUrl from "@/assets/highspeed/share-card.svg";
 import shareCardLightBackgroundUrl from "@/assets/highspeed/share-card-light.svg";
 import shareDialogNoiseUrl from "@/assets/highspeed/share-dialog-noise.png";
 import shareDialogNoiseLightUrl from "@/assets/highspeed/share-dialog-noise-light.png";
-import zaiLogoUrl from "@/assets/highspeed/zai-logo.png";
 import { Button } from "@/components/ui/button.js";
 import { ZCodeWordmarkLogo } from "@/components/ui/ZCodeAboutLogo.js";
 import {
@@ -74,7 +73,7 @@ export function HighspeedShareNoticeCard({
             data-highspeed-card-background="dark"
           />
           <div className="highspeed-sidebar-share-card__content">
-            <div className="highspeed-sidebar-share-card__title" role="img" aria-label="ZCode">
+            <div className="highspeed-sidebar-share-card__title" role="img" aria-label="PlayLiquid">
               <ZCodeWordmarkLogo className="highspeed-sidebar-share-card__wordmark" />
             </div>
             <Button
@@ -234,7 +233,32 @@ export function HighspeedShareDialog({
           <div className="highspeed-share-dialog__header">
             <div className="highspeed-share-dialog__brand">
               <span className="highspeed-share-dialog__logo" aria-hidden="true">
-                <img src={zaiLogoUrl} alt="" draggable={false} />
+                {/* PlayLiquid ProductMark：液滴标志（与标题栏徽章同源，替代旧 Z 标位图）。 */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12.8"
+                  height="12.8"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M12 2.4c3.5 3.9 6.4 7.2 6.4 10.6a6.4 6.4 0 1 1-12.8 0C5.6 9.6 8.5 6.3 12 2.4Z"
+                    fill="#2dd4bf"
+                    fillOpacity="0.16"
+                    stroke="#2dd4bf"
+                    strokeWidth="1.4"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    d="M9.2 13.4c.2 2 1.6 3.3 3.5 3.5"
+                    fill="none"
+                    stroke="#2dd4bf"
+                    strokeWidth="1.2"
+                    strokeLinecap="round"
+                  />
+                </svg>
               </span>
               <span className="highspeed-share-dialog__benefit">
                 {intl.formatMessage({ id: "globalNotice.highspeed.badge" })}

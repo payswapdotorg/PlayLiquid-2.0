@@ -45,6 +45,7 @@ import { WhiteboardPane } from "@/WhiteboardPane.js";
 import { ModelTrajectoryPane } from "@/ModelTrajectoryPane.js";
 import { PluginStorePage } from "@/settings/PluginStorePage.js";
 import { DeveloperToolsPane } from "@/DeveloperToolsPane.js";
+import { PlayLiquidConsolePane } from "@playliquid/gameos";
 import { cn } from "@/components/lib/utils.js";
 import { Button } from "@/components/ui/button.js";
 
@@ -120,6 +121,7 @@ import {
   FileDiffIcon,
   FolderOpenIcon,
   EarthIcon,
+  Gamepad2Icon,
   GlobeIcon,
   MessageSquareTextIcon,
   PlusIcon,
@@ -344,6 +346,7 @@ export function AnimatedSidePanePanel({
   onOpenBrowserPermissionSettings,
   onOpenWhiteboard: _onOpenWhiteboard,
   onOpenDeveloperTools,
+  onOpenPlayLiquidConsole,
   onOpenFileManager,
   onNavigateFileManager,
   onOpenPluginMarket,
@@ -434,6 +437,8 @@ export function AnimatedSidePanePanel({
   onOpenBrowserPermissionSettings?: (origin: string) => void;
   onOpenWhiteboard: () => void;
   onOpenDeveloperTools: () => void;
+  /** New Tab 启动器的第五入口：打开 PlayLiquid Console（GameOS 世界项目工作台）。 */
+  onOpenPlayLiquidConsole: () => void;
   onOpenFileManager: (target?: FileManagerTarget) => void;
   onNavigateFileManager: (tabId: string, source: CodeViewerSource) => void;
   onOpenPluginMarket?: () => void;
@@ -850,6 +855,13 @@ export function AnimatedSidePanePanel({
       icon: GlobeIcon,
       onOpen: onOpenBrowserTab,
     },
+    "playliquid-console": {
+      id: "playliquid-console",
+      label: intl.formatMessage({ id: "sidePane.playliquidConsole" }),
+      description: intl.formatMessage({ id: "sidePane.launcher.playliquidConsole" }),
+      icon: Gamepad2Icon,
+      onOpen: onOpenPlayLiquidConsole,
+    },
     "developer-tools": {
       id: "developer-tools",
       label: intl.formatMessage({ id: "developerTools.title" }),
@@ -983,6 +995,9 @@ export function AnimatedSidePanePanel({
         pluginMarketTitle: intl.formatMessage({ id: "workspace.openPluginsSettings" }),
         developerToolsTitle: intl.formatMessage({
           id: "developerTools.title",
+        }),
+        playLiquidConsoleTitle: intl.formatMessage({
+          id: "sidePane.playliquidConsoleTab",
         }),
         browserPermissionsTitle: intl.formatMessage({
           id: "browser.permission.settings",
@@ -1456,6 +1471,8 @@ export function AnimatedSidePanePanel({
                               enabled={isVisible && tab.id === contentActiveTabId}
                             />
                           </ServiceProvider>
+                        ) : tab.type === "playliquid-console" ? (
+                          <PlayLiquidConsolePane />
                         ) : tab.type === "terminal" ? (
                           <SidePaneTerminalPane
                             services={services}

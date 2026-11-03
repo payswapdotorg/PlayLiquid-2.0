@@ -126,6 +126,15 @@ export interface DeveloperToolsSidePaneTab {
   openedAt?: number;
 }
 
+/** PlayLiquid Console（GameOS 世界项目工作台）：进程内组合真实 GameOS 域服务的侧栏 tab。 */
+export interface PlayLiquidConsoleSidePaneTab {
+  id: "playliquid-console";
+  type: "playliquid-console";
+  ownerTaskId?: string | null;
+  workspaceKey?: string | null;
+  openedAt?: number;
+}
+
 export interface TerminalSidePaneTab {
   id: string;
   type: "terminal";
@@ -575,6 +584,7 @@ export type WorkspaceSidePaneTab =
   | ModelTrajectorySidePaneTab
   | PluginMarketSidePaneTab
   | DeveloperToolsSidePaneTab
+  | PlayLiquidConsoleSidePaneTab
   | TerminalSidePaneTab
   | BrowserUseSidePaneTab
   | SubagentSessionSidePaneTab
@@ -733,6 +743,14 @@ function createDeveloperToolsSidePaneTab(): DeveloperToolsSidePaneTab {
   return {
     id: "developer-tools",
     type: "developer-tools",
+    openedAt: Date.now(),
+  };
+}
+
+function createPlayLiquidConsoleSidePaneTab(): PlayLiquidConsoleSidePaneTab {
+  return {
+    id: "playliquid-console",
+    type: "playliquid-console",
     openedAt: Date.now(),
   };
 }
@@ -1178,6 +1196,7 @@ export function isSidePaneTabVisibleInScope(
   switch (tab.type) {
     case "git":
     case "developer-tools":
+    case "playliquid-console":
     case "plugin-market":
     case "treemapping":
       return true;
@@ -1846,6 +1865,12 @@ export function activateDeveloperToolsSidePane(
   current: WorkspaceSidePaneState | null,
 ): WorkspaceSidePaneState {
   return activateSidePaneTab(current, createDeveloperToolsSidePaneTab());
+}
+
+export function activatePlayLiquidConsoleSidePane(
+  current: WorkspaceSidePaneState | null,
+): WorkspaceSidePaneState {
+  return activateSidePaneTab(current, createPlayLiquidConsoleSidePaneTab());
 }
 
 export function openTerminalSidePane(
