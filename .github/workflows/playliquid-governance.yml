@@ -1,0 +1,45 @@
+name: playliquid-governance
+
+# PlayLiquid-2.0 controlled-change governance gate.
+# Enforces docs/governance/CHANGE-POLICY.md on every push and pull request:
+#   - every modified/deleted baseline file must be authorized in the manifest
+#   - protected-surface changes require justification + TL approval
+#   - retired milestone-1 paths must not be re-introduced
+# Replaces the milestone-1 additions-only gate (playliquid-integrity.yml, retired 2026-11-03).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Controlled-change policy gate
+        run: |
+          node scripts/governance/verify-change-policy.mjs
+
+      - name: Upload change-policy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: change-policy-report
+          path: docs/qa/change-policy-report.json
+          if-no-files-found: ignore
