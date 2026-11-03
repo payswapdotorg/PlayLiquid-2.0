@@ -80,7 +80,14 @@ async function diffVsBaseline(baseline, includeWorkingTree) {
   }
   const untrackedOut = await git(["ls-files", "--others", "--exclude-standard", "-z"]);
   const untracked = untrackedOut.split("\0").filter(Boolean).map((path) => ({ status: "A", path }));
-  return [...committed, ...working, ...untracked];
+  // Drift vs HEAD only counts for files that exist in the baseline tree: a file that is
+  // new vs baseline (fork addition) being edited locally is an edit to an *added* file,
+  // not a modification of a baseline file.
+  const baselineFiles = new Set(
+    (await git(["ls-tree", "-r", "--name-only", "-z", baseline, "--"])).split("\0").filter(Boolean),
+  );
+  const driftInBaseline = working.filter((change) => baselineFiles.has(change.path));
+  return [...committed, ...driftInBaseline, ...untracked];
 }
 
 async function main() {
@@ -125,17 +132,19 @@ async function main() {
 
   // Rules 1 & 2: every M/D baseline file must be manifest-authorized.
   for (const [path, status] of modifiedOrDeleted) {
+    const kind = status === "M" ? "modified" : "deleted";
     const entry = entries.get(path);
     if (!entry) {
       fail(
-        `${status === "D" ? "deleted" : "modified"} baseline file not in authorized-modifications.json: ${path}`,
+        `${kind === "D" ? "deleted" : "modified"} baseline file not in authorized-modifications.json: ${path}`,
       );
       violations += 1;
       continue;
     }
-    if (entry.change !== status) {
-      fail(`manifest change kind mismatch for ${path}: declared ${entry.change}, actual ${status}`);
+    if (entry.change !== kind) {
+      fail(`manifest change kind mismatch for ${path}: declared ${entry.change}, actual ${kind}`);
       violations += 1;
+      continue;
     }
     const protectedHit = matchesProtected(path, manifest.protectedSurfaces);
     if (protectedHit) {
