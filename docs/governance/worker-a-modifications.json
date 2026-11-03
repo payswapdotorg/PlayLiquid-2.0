@@ -1,0 +1,117 @@
+{
+  "workPackage": "worker-a-theme-branding",
+  "owner": "worker-a",
+  "branch": "worker-a/theme-branding",
+  "files": [
+    {
+      "path": "DESIGN.md",
+      "change": "modified",
+      "reason": "Update the only concrete theme-mode color references (remote-foreground-muted light/dark hexes) to the PlayLiquid palette; layout and type-scale rules untouched."
+    },
+    {
+      "path": "README.en.md",
+      "change": "modified",
+      "reason": "Rebrand heading, logo alt text, product intro and CLI-distribution headings/cross-references to PlayLiquid; add the 'PlayLiquid — powered by the ZCode application foundation (Apache-2.0).' line; version history table, commands, paths and env vars kept intact."
+    },
+    {
+      "path": "README.md",
+      "change": "modified",
+      "reason": "Chinese README rebrand: heading, logo alt, product intro, CLI-distribution headings/cross-references to PlayLiquid; foundation line added; version history table, commands, paths, env vars and /Applications/ZCode.app artifact references kept intact."
+    },
+    {
+      "path": "packages/desktop/src/main/about.ts",
+      "change": "modified",
+      "reason": "About dialog strings: ABOUT_APPLICATION_NAME -> 'PlayLiquid Desktop App', zh/en about titles and copyright lines renamed to PlayLiquid; logic and APIs untouched."
+    },
+    {
+      "path": "packages/desktop/src/renderer/cua-permission-panel.html",
+      "change": "modified",
+      "reason": "'ZCode Computer Use' -> 'PlayLiquid Computer Use' in the panel title and the draggable permission tile label; styling and script untouched."
+    },
+    {
+      "path": "packages/desktop/src/renderer/index.html",
+      "change": "modified",
+      "reason": "Desktop entry title -> PlayLiquid; #loading splash badge restyled to PlayLiquid navy gradient with the teal droplet ProductMark replacing the inline Z SVG; body.zcode-startup-ready dismissal mechanism and class names preserved."
+    },
+    {
+      "path": "packages/desktop/src/renderer/plugin-sandbox.html",
+      "change": "modified",
+      "reason": "Sandbox window title 'ZCode Plugin Sandbox' -> 'PlayLiquid Plugin Sandbox'."
+    },
+    {
+      "path": "packages/shared/src/desktopMenu.ts",
+      "change": "modified",
+      "reason": "App menu / tray / endpoint label values renamed to PlayLiquid in zh-CN and en-US; message ids and {appName} interpolations untouched."
+    },
+    {
+      "path": "packages/ui/src/WelcomeScreen.tsx",
+      "change": "modified",
+      "reason": "Login logo badge shell restyled from black gradient to PlayLiquid navy; aria-label 'ZCode' -> 'PlayLiquid'; logo size class tuned for the droplet mark."
+    },
+    {
+      "path": "packages/ui/src/WindowsTopLeftLogo.tsx",
+      "change": "modified",
+      "reason": "Windows top-left logo aria-label 'ZCode' -> 'PlayLiquid' (data-testid settings-logo kept); visual mark updates come from ZCodeStartupLogoBadge."
+    },
+    {
+      "path": "packages/ui/src/WorkspaceSidebarFooter.tsx",
+      "change": "modified",
+      "reason": "Fallback profile display name 'ZCode' -> 'PlayLiquid' and avatar fallback letter 'Z' -> 'P'; all props/behavior unchanged."
+    },
+    {
+      "path": "packages/ui/src/components/mobile-ui/ZCodeAppLogo.tsx",
+      "change": "modified",
+      "reason": "App logo asset dependency (logo-zai.svg) replaced by an inline PlayLiquid navy rounded-square + droplet SVG; data-app-logo value and decorative semantics kept."
+    },
+    {
+      "path": "packages/ui/src/components/ui/ZCodeAboutLogo.tsx",
+      "change": "modified",
+      "reason": "ZCodeAboutLogo: Z mark replaced with the droplet ProductMark; ZCodeWordmarkLogo rebuilt as droplet + 'PlayLiquid' SVG wordmark; component names, exports and props preserved."
+    },
+    {
+      "path": "packages/ui/src/highspeed/HighspeedShareNoticeCard.tsx",
+      "change": "modified",
+      "reason": "Share card title aria-label 'ZCode' -> 'PlayLiquid'; share dialog brand chip now renders the inline droplet ProductMark instead of the legacy zai-logo.png bitmap."
+    },
+    {
+      "path": "packages/ui/src/highspeed/highspeed-activation.css",
+      "change": "modified",
+      "reason": "Dark composer surface hex realigned to the PlayLiquid panel color; Highspeed purple accent/glow semantics unchanged."
+    },
+    {
+      "path": "packages/ui/src/highspeed/highspeed-share.css",
+      "change": "modified",
+      "reason": "Light/dark share card and share dialog surfaces, borders, text and muted colors realigned to the PlayLiquid palette; download CTA now uses the PlayLiquid primary action colors per theme; data-viz bar colors and purple model accents unchanged."
+    },
+    {
+      "path": "packages/ui/src/i18n/locales/en-US.ts",
+      "change": "modified",
+      "reason": "Brand sweep in message values only: 136 occurrences of 'ZCode' -> 'PlayLiquid' across 130 values; keys, ids, interpolation tokens and lowercase technical identifiers (~/.zcode, .zcodeignore, x-zcode-bot-secret, https://zcode.z.ai) preserved."
+    },
+    {
+      "path": "packages/ui/src/i18n/locales/zh-CN.ts",
+      "change": "modified",
+      "reason": "Brand sweep in message values only: 135 occurrences of 'ZCode' -> 'PlayLiquid' across 129 values; keys, ids, interpolation tokens and lowercase technical identifiers preserved."
+    },
+    {
+      "path": "packages/ui/src/root/PostUpdateReleaseNotesDialog.tsx",
+      "change": "modified",
+      "reason": "Release notes header icon alt text 'ZCode' -> 'PlayLiquid'."
+    },
+    {
+      "path": "packages/ui/src/root/RootStartupLoading.tsx",
+      "change": "modified",
+      "reason": "ZCodeStartupLogoBadge shell gradient -> PlayLiquid navy; ZCodeStartupLogo replaced with the animated droplet ProductMark; component names, props, exports and pulse animation preserved."
+    },
+    {
+      "path": "packages/ui/src/styles.css",
+      "change": "modified",
+      "reason": "All four theme blocks (@theme light, .dark, .theme-zai-light, .theme-zai-dark) recolored to the PlayLiquid light/dark palettes; --font-sans added with Inter first; :root remote-continuity tokens moved to the navy family; no CSS variable, class or directive renamed."
+    },
+    {
+      "path": "packages/web/index.html",
+      "change": "modified",
+      "reason": "Web entry title -> PlayLiquid; meta theme-color, browser theme-surface colors and bootstrap fallbacks aligned to the PlayLiquid palette; boot-loading shell restyled navy with the droplet ProductMark; theme bootstrap script logic untouched."
+    }
+  ]
+}

@@ -3,41 +3,41 @@
 :root {
   --highspeed-sidebar-model-icon: #6041ff;
   --highspeed-sidebar-model-gradient: linear-gradient(90deg, #4830c8 0%, #6041ff 50%, #8955db 100%);
-  --highspeed-sidebar-card-surface: #fafafa;
+  --highspeed-sidebar-card-surface: #ffffff;
   --highspeed-sidebar-card-outline: var(--color-border);
   --highspeed-share-card-light-background-opacity: 1;
   --highspeed-share-card-dark-background-opacity: 0;
   --color-highspeed-share-card-view-border: rgb(0 0 0 / 18%);
   --color-highspeed-share-card-view-start: rgb(255 255 255 / 6%);
   --color-highspeed-share-card-view-end: rgb(153 153 153 / 6%);
-  --color-highspeed-share-foreground: #161518;
-  --color-highspeed-share-foreground-subtle: rgb(0 0 0 / 80%);
-  --color-highspeed-share-control-hover: rgb(13 13 13 / 4%);
+  --color-highspeed-share-foreground: #16233b;
+  --color-highspeed-share-foreground-subtle: rgb(22 35 59 / 80%);
+  --color-highspeed-share-control-hover: rgb(22 35 59 / 4%);
   --color-highspeed-share-dialog-surface: #ffffff;
-  --color-highspeed-share-dialog-border: rgb(0 0 0 / 10%);
+  --color-highspeed-share-dialog-border: #cbd6e6;
   --highspeed-share-dialog-box-shadow:
     0 22px 6px rgb(0 0 0 / 0%), 0 14px 6px rgb(0 0 0 / 1%), 0 8px 5px rgb(0 0 0 / 5%),
     0 3px 3px rgb(0 0 0 / 9%), 0 1px 2px rgb(0 0 0 / 10%);
-  --color-highspeed-share-dialog-foreground: #161518;
-  --color-highspeed-share-dialog-muted: rgb(0 0 0 / 58%);
+  --color-highspeed-share-dialog-foreground: #16233b;
+  --color-highspeed-share-dialog-muted: #5a6b85;
   --color-highspeed-share-dialog-noise-dark-opacity: 0;
   --color-highspeed-share-dialog-noise-light-opacity: 0.06;
   --color-highspeed-share-dialog-noise-opacity: 1;
   --color-highspeed-share-dialog-control-hover: rgb(0 0 0 / 7%);
-  --color-highspeed-share-dialog-download-surface: #000000;
-  --color-highspeed-share-dialog-download-hover-surface: #1f1f1f;
+  --color-highspeed-share-dialog-download-surface: #0d9488;
+  --color-highspeed-share-dialog-download-hover-surface: #0b8276;
   --color-highspeed-share-dialog-download-foreground: #ffffff;
-  --color-highspeed-share-dialog-stats-border: rgb(0 0 0 / 10%);
+  --color-highspeed-share-dialog-stats-border: #cbd6e6;
   --color-highspeed-share-dialog-bars-start: #ed6c70;
   --color-highspeed-share-dialog-bars-mid: #f0c76e;
   --color-highspeed-share-dialog-bars-end: #80d68d;
   --color-highspeed-share-dialog-marker-glow: rgb(107 215 125 / 60%);
-  --color-highspeed-share-dialog-logo-surface: #2d2d2d;
+  --color-highspeed-share-dialog-logo-surface: #0d1524;
   --color-highspeed-share-dialog-logo-border: rgb(255 255 255 / 12%);
-  --color-highspeed-share-dialog-benefit-text: #5c5c5c;
-  --color-highspeed-share-dialog-pill-text: #5c5c5c;
-  --color-highspeed-share-dialog-input-border: rgb(0 0 0 / 10%);
-  --color-highspeed-share-dialog-bars-baseline: rgb(13 13 13 / 5%);
+  --color-highspeed-share-dialog-benefit-text: #5a6b85;
+  --color-highspeed-share-dialog-pill-text: #5a6b85;
+  --color-highspeed-share-dialog-input-border: #cbd6e6;
+  --color-highspeed-share-dialog-bars-baseline: rgb(22 35 59 / 5%);
 }
 
 .dark,
@@ -49,29 +49,32 @@
   --highspeed-share-card-light-background-opacity: 0;
   --highspeed-share-card-dark-background-opacity: 1;
   --color-highspeed-share-card-view-border: rgb(255 255 255 / 44%);
-  --color-highspeed-share-foreground: #e7e4ed;
-  --color-highspeed-share-foreground-subtle: #c8c2d2;
-  --color-highspeed-share-control-hover: rgb(255 255 255 / 10%);
-  --color-highspeed-share-dialog-surface: #101010;
-  --color-highspeed-share-dialog-border: rgb(255 255 255 / 12%);
+  --color-highspeed-share-foreground: #e2e8f0;
+  --color-highspeed-share-foreground-subtle: #8fa3bf;
+  --color-highspeed-share-control-hover: rgb(226 232 240 / 10%);
+  --color-highspeed-share-dialog-surface: #111a2c;
+  --color-highspeed-share-dialog-border: #22304a;
   --highspeed-share-dialog-box-shadow:
     0 63px 18px rgb(0 0 0 / 0%), 0 41px 16px rgb(0 0 0 / 1%), 0 23px 14px rgb(0 0 0 / 5%),
     0 10px 10px rgb(0 0 0 / 9%), 0 3px 6px rgb(0 0 0 / 10%);
-  --color-highspeed-share-dialog-foreground: #f7f5fa;
-  --color-highspeed-share-dialog-muted: rgb(231 228 237 / 64%);
+  --color-highspeed-share-dialog-foreground: #e2e8f0;
+  --color-highspeed-share-dialog-muted: #8fa3bf;
   --color-highspeed-share-dialog-noise-dark-opacity: 0.06;
   --color-highspeed-share-dialog-noise-light-opacity: 0;
   --color-highspeed-share-dialog-noise-opacity: 1;
-  --color-highspeed-share-dialog-control-hover: rgb(255 255 255 / 10%);
-  --color-highspeed-share-dialog-stats-border: rgb(255 255 255 / 10%);
+  --color-highspeed-share-dialog-control-hover: rgb(226 232 240 / 10%);
+  --color-highspeed-share-dialog-download-surface: #2dd4bf;
+  --color-highspeed-share-dialog-download-hover-surface: #4ce0cd;
+  --color-highspeed-share-dialog-download-foreground: #0b1220;
+  --color-highspeed-share-dialog-stats-border: #22304a;
   --color-highspeed-share-dialog-bars-start: #ef6f72;
   --color-highspeed-share-dialog-bars-mid: #f1c86f;
   --color-highspeed-share-dialog-bars-end: #82d990;
   --color-highspeed-share-dialog-marker-glow: rgb(115 221 132 / 60%);
-  --color-highspeed-share-dialog-benefit-text: #adadad;
-  --color-highspeed-share-dialog-pill-text: #adadad;
-  --color-highspeed-share-dialog-input-border: rgb(255 255 255 / 10%);
-  --color-highspeed-share-dialog-bars-baseline: rgb(255 255 255 / 18%);
+  --color-highspeed-share-dialog-benefit-text: #8fa3bf;
+  --color-highspeed-share-dialog-pill-text: #8fa3bf;
+  --color-highspeed-share-dialog-input-border: #22304a;
+  --color-highspeed-share-dialog-bars-baseline: rgb(226 232 240 / 18%);
 }
 
 .highspeed-sidebar-share-card-frame {
