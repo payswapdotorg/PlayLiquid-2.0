@@ -19,7 +19,7 @@
 .dark,
 .theme-zai-dark {
   --color-highspeed-accent: #b392ff;
-  --color-highspeed-composer-surface: #151515;
+  --color-highspeed-composer-surface: #111a2c;
   /* Dark 的预动画描边保持 transparent，避免深色壳层出现一圈中性描边。 */
   --color-highspeed-composer-border-pre-animation: transparent;
   --color-highspeed-glow-01: rgb(168 136 242 / 1%);
