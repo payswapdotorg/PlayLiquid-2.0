@@ -107,28 +107,28 @@ export {
 } from "./view/onboarding.js";
 
 // Presentational components (zero data fetching).
-export { ProjectsShell } from "./components/projects-shell.tsx";
-export type { ProjectsShellProps } from "./components/projects-shell.tsx";
-export { ProjectListPanel } from "./components/project-list-panel.tsx";
-export type { ProjectListPanelProps } from "./components/project-list-panel.tsx";
-export { ProjectOverviewPanel } from "./components/project-overview-panel.tsx";
-export type { ProjectOverviewPanelProps } from "./components/project-overview-panel.tsx";
-export { CompositionPanel } from "./components/composition-panel.tsx";
-export type { CompositionPanelProps } from "./components/composition-panel.tsx";
-export { SemanticPullRequestsPanel } from "./components/semantic-pr-panel.tsx";
-export type { SemanticPullRequestsPanelProps } from "./components/semantic-pr-panel.tsx";
-export { EmptySurface } from "./components/empty-surface.tsx";
-export type { EmptySurfaceProps } from "./components/empty-surface.tsx";
-export { CountPill, StatusChip } from "./components/status-chip.tsx";
-export type { StatusChipProps } from "./components/status-chip.tsx";
-export { Banner, ChipList, DataTable, EmptyState, KeyValue, Mono, Panel } from "./components/primitives.tsx";
-export type { DataTableColumn, DataTableProps } from "./components/primitives.tsx";
+export { ProjectsShell } from "./components/projects-shell.js";
+export type { ProjectsShellProps } from "./components/projects-shell.js";
+export { ProjectListPanel } from "./components/project-list-panel.js";
+export type { ProjectListPanelProps } from "./components/project-list-panel.js";
+export { ProjectOverviewPanel } from "./components/project-overview-panel.js";
+export type { ProjectOverviewPanelProps } from "./components/project-overview-panel.js";
+export { CompositionPanel } from "./components/composition-panel.js";
+export type { CompositionPanelProps } from "./components/composition-panel.js";
+export { SemanticPullRequestsPanel } from "./components/semantic-pr-panel.js";
+export type { SemanticPullRequestsPanelProps } from "./components/semantic-pr-panel.js";
+export { EmptySurface } from "./components/empty-surface.js";
+export type { EmptySurfaceProps } from "./components/empty-surface.js";
+export { CountPill, StatusChip } from "./components/status-chip.js";
+export type { StatusChipProps } from "./components/status-chip.js";
+export { Banner, ChipList, DataTable, EmptyState, KeyValue, Mono, Panel } from "./components/primitives.js";
+export type { DataTableColumn, DataTableProps } from "./components/primitives.js";
 export { FONT, STYLE, SURFACE, TONE_STYLE } from "./components/tokens.js";
 export type { ToneStyle } from "./components/tokens.js";
 
 // The app composition.
-export { ProjectsApp } from "./app/projects-app.tsx";
-export type { ProjectsAppProps } from "./app/projects-app.tsx";
+export { ProjectsApp } from "./app/projects-app.js";
+export type { ProjectsAppProps } from "./app/projects-app.js";
 export { projectStateCached, useProjectsStore } from "./app/use-projects-store.js";
 export type { UseProjectsStore } from "./app/use-projects-store.js";
 

@@ -1184,6 +1184,18 @@ modules:
       adapters: .
     owner: desktop
 
+  # playliquid-gameos：由 worker-b 登记（New Tab Console 工作包，@playliquid/gameos 单包模块）。
+  - id: playliquid-gameos
+    roots:
+      - packages/playliquid-gameos
+    managed: true
+    requires: []
+    publicEntrypoints:
+      - packages/playliquid-gameos/src/index.ts
+    layers:
+      adapters: .
+    owner: worker-b
+
 global:
   # 临时时间戳（2026-09-10）：unmanaged-new-file 只约束此日期之后首次入库的文件。
   # 基于领先 staging 很多的分支开工时，merge-base 之前的"新增"文件不应被追溯。
@@ -1511,3 +1523,8 @@ exceptions:
     paths:
       - packages/zcode-cua/src/**
     reason: The whole zcode-cua producer package (broker, native adapters, tools) entered the repo after the gate timestamp as pre-existing code moved from a separate repository; adopting its internal layers needs a dedicated CONTRACT pass (it has known internal cycles by design), not a mechanical split in this branch.
+  - id: playliquid-gameos-git-control-regex-lint
+    rule: disable-count
+    paths:
+      - packages/playliquid-gameos/src/game-contracts/git.ts
+    reason: The GameOS branch/tag name vocabulary's control-character validation regex carries one eslint-disable (verbatim upstream port); the regex is the rule itself, not a suppressed smell.

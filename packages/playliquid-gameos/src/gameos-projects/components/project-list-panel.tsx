@@ -13,9 +13,9 @@ import type { ProjectsView } from "../view/projects-view.js";
 import { projectsSummary } from "../view/projects-view.js";
 import { PROJECTS_EMPTY_STATE_COPY } from "../view/onboarding.js";
 import { worldKindStatus } from "../view/status.js";
-import { DataTable, Mono, Panel } from "./primitives.tsx";
-import { EmptySurface } from "./empty-surface.tsx";
-import { StatusChip } from "./status-chip.tsx";
+import { DataTable, Mono, Panel } from "./primitives.js";
+import { EmptySurface } from "./empty-surface.js";
+import { StatusChip } from "./status-chip.js";
 import { STYLE } from "./tokens.js";
 
 export interface ProjectListPanelProps {

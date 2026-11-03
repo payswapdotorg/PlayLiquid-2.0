@@ -12,7 +12,7 @@
 
 import { useCallback } from "react";
 import type { ReactNode } from "react";
-import { ProjectsShell } from "../components/projects-shell.tsx";
+import { ProjectsShell } from "../components/projects-shell.js";
 import { useProjectsStore } from "./use-projects-store.js";
 import type { ProjectsStore } from "../projects-store.js";
 import type { ProjectsCommandIntent } from "../ports.js";

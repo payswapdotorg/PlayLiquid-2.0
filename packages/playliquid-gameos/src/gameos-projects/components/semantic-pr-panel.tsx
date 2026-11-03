@@ -24,9 +24,9 @@ import {
   pullRequestStatusStatus,
   transitionCommandStatus,
 } from "../view/status.js";
-import { ChipList, DataTable, KeyValue, Mono, Panel } from "./primitives.tsx";
-import { EmptySurface } from "./empty-surface.tsx";
-import { StatusChip } from "./status-chip.tsx";
+import { ChipList, DataTable, KeyValue, Mono, Panel } from "./primitives.js";
+import { EmptySurface } from "./empty-surface.js";
+import { StatusChip } from "./status-chip.js";
 import { STYLE } from "./tokens.js";
 
 export interface SemanticPullRequestsPanelProps {

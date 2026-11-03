@@ -24,12 +24,12 @@ import { projectsSummary } from "../view/projects-view.js";
 import type { ProjectsSelectionRefusal } from "../view/projects-selection.js";
 import { commandLogNextHint, refreshFailureNextStep } from "../view/onboarding.js";
 import { commandReceiptStatus, refusalStatus } from "../view/status.js";
-import { CompositionPanel } from "./composition-panel.tsx";
-import { ProjectListPanel } from "./project-list-panel.tsx";
-import { ProjectOverviewPanel } from "./project-overview-panel.tsx";
-import { SemanticPullRequestsPanel } from "./semantic-pr-panel.tsx";
-import { Banner, Panel } from "./primitives.tsx";
-import { CountPill, StatusChip } from "./status-chip.tsx";
+import { CompositionPanel } from "./composition-panel.js";
+import { ProjectListPanel } from "./project-list-panel.js";
+import { ProjectOverviewPanel } from "./project-overview-panel.js";
+import { SemanticPullRequestsPanel } from "./semantic-pr-panel.js";
+import { Banner, Panel } from "./primitives.js";
+import { CountPill, StatusChip } from "./status-chip.js";
 import { FONT, STYLE, SURFACE } from "./tokens.js";
 
 /** Tab ids in navigation order. */

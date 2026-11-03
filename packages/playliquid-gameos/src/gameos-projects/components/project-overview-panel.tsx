@@ -10,9 +10,9 @@ import type { OverviewView } from "../view/project-overview-view.js";
 import { overviewSummary } from "../view/project-overview-view.js";
 import { PROJECTS_EMPTY_STATE_COPY } from "../view/onboarding.js";
 import { taskStatusStatus } from "../view/status.js";
-import { DataTable, KeyValue, Mono, Panel } from "./primitives.tsx";
-import { EmptySurface } from "./empty-surface.tsx";
-import { StatusChip } from "./status-chip.tsx";
+import { DataTable, KeyValue, Mono, Panel } from "./primitives.js";
+import { EmptySurface } from "./empty-surface.js";
+import { StatusChip } from "./status-chip.js";
 import { STYLE } from "./tokens.js";
 
 export interface ProjectOverviewPanelProps {
