@@ -1,51 +1,52 @@
 /**
- * RW-003 harness — page-level checks (DOM probes, navigation, real operation,
- * viewports). All probes are read-only except the documented user-action
- * clicks (tab selection + the Studio "Refresh snapshot" control), which are
- * real supported operations of the product modules.
+ * RW-003 harness — page-level checks (boot probe, identity, viewports,
+ * clean profile) for the UNIFIED PlayLiquid shell.
+ *
+ * The unified-shell vocabulary (config.mjs) replaces the reference repo's
+ * GameOS Studio/Lab/Community surfaces: the product IS the PlayLiquid-branded
+ * ZCode workbench, and PlayLiquid Console is a side-pane tab. The shell probe
+ * therefore looks for the first-run gate (welcome/login) or the workspace
+ * composer; the full golden-path journey lives in checks-journey.mjs.
+ *
+ * Probes here are read-only. The journey battery performs the documented
+ * REAL user actions (auth skip, onboarding walk, side-pane/launcher clicks).
  */
-import fs from "node:fs";
 import path from "node:path";
 import { PRODUCT_MARKERS, SHELL_MARKERS, VIEWPORTS, WINDOW_MIN_WIDTH } from "./config.mjs";
 import { saveScreenshot } from "./report.mjs";
 import { sleep } from "./memwatch.mjs";
 
-/** One combined DOM probe covering all product markers (single round trip). */
+/** One combined DOM probe covering the unified-shell boot markers (single
+ * round trip). Used by the boot wait (run.mjs), the identity checks and the
+ * offline scenario — keep the generic fields (title/textLength/textHead/
+ * h1s/headerText) stable for every consumer. */
 export async function markerProbe(cdp) {
   const expression = `(() => {
     const text = document.body?.innerText ?? "";
     const has = (needle) => text.includes(needle);
-    // DOM-level presence (textContent includes display:none subtrees): the
-    // product shell keeps all three workspaces MOUNTED and switches
-    // visibility — a kept-mounted surface is "rendered" by design; its
-    // VISIBILITY is proven by the product-navigation check (click + visible
-    // surface). innerText alone cannot see a mounted-but-inactive workspace.
-    const domText = document.body?.textContent ?? "";
-    const domHas = (needle) => domText.includes(needle);
-    const navHas = (needle) => {
-      const controls = [...document.querySelectorAll("button, a, [role='tab'], [role='button'], nav *, [aria-label]")];
-      return controls.some((el) => {
-        const label = ((el.getAttribute("aria-label") ?? "") + " " + (el.textContent ?? "")).trim();
-        return label.toLowerCase().includes(needle.toLowerCase());
-      });
-    };
+    const controls = [...document.querySelectorAll("button, a, [role='tab'], [role='button']")];
+    const controlHas = (needle) => controls.some((el) => {
+      const label = ((el.getAttribute("aria-label") ?? "") + " " + (el.textContent ?? "")).replace(/\\s+/g, " ").trim();
+      return label.toLowerCase().includes(needle.toLowerCase());
+    });
+    const placeholders = [...document.querySelectorAll("[aria-placeholder], textarea, input[type='text'], input[type='search']")]
+      .map((el) => el.getAttribute("aria-placeholder") ?? el.getAttribute("placeholder") ?? "")
+      .filter(Boolean);
+    const composerPlaceholder = placeholders.find((value) => value.startsWith(${JSON.stringify(PRODUCT_MARKERS.composerPlaceholderPrefix)})) ?? null;
     return {
       url: window.location.href,
       title: document.title,
       textLength: text.length,
       textHead: text.slice(0, 500),
-      studioHeading: has(${JSON.stringify(PRODUCT_MARKERS.studioHeading)}),
-      studioNavLabel: navHas(${JSON.stringify(PRODUCT_MARKERS.studioNavLabel)}),
-      studioTabs: ${JSON.stringify(PRODUCT_MARKERS.studioTabs)}.map(has),
-      studioRefresh: navHas(${JSON.stringify(PRODUCT_MARKERS.studioRefresh)}),
-      studioLoadError: text.includes(${JSON.stringify(PRODUCT_MARKERS.studioLoadErrorPrefix)}),
-      studioEmptyPackages: has(${JSON.stringify(PRODUCT_MARKERS.studioEmptyPackages)}),
-      packagesZeroPill: /Packages\\s*0\\b/.test(text),
-      labHeading: domHas(${JSON.stringify(PRODUCT_MARKERS.labHeading)}),
-      communityHeading: domHas(${JSON.stringify(PRODUCT_MARKERS.communityHeading)}),
-      navStudio: navHas("Studio"),
-      navLab: navHas("Lab"),
-      navCommunity: navHas("Community"),
+      welcomeHeading: has(${JSON.stringify(PRODUCT_MARKERS.welcomeHeading)}),
+      welcomeSubline: has(${JSON.stringify(PRODUCT_MARKERS.welcomeSubline)}),
+      apiKeyEntry: has(${JSON.stringify(PRODUCT_MARKERS.apiKeyEntry)}),
+      skipForNow: has(${JSON.stringify(PRODUCT_MARKERS.skipLabel)}),
+      composerPlaceholderPresent: composerPlaceholder !== null,
+      composerPlaceholderValue: composerPlaceholder,
+      selectProject: has(${JSON.stringify(PRODUCT_MARKERS.selectProject)}),
+      sidePaneToggle: Boolean(document.querySelector('[data-testid="${SHELL_MARKERS.sidePaneToggle}"]')),
+      windowControls: [...document.querySelectorAll('[data-testid^="window-control-"]')].map((el) => el.getAttribute("data-testid")),
       h1s: [...document.querySelectorAll("h1, h2")].slice(0, 8).map((el) => (el.textContent ?? "").trim()).filter(Boolean),
       headerText: [...document.querySelectorAll("header")].slice(0, 3).map((el) => (el.textContent ?? "").trim().slice(0, 150)).filter(Boolean),
     };
@@ -72,7 +73,7 @@ export async function clickByText(cdp, label) {
 }
 
 export function identityChecks(report, probe, options) {
-  const expectedTitle = options.expectedTitle ?? PRODUCT_MARKERS.productName;
+  const expectedTitle = options.expectedTitle ?? PRODUCT_MARKERS.windowTitle;
   report.check(
     "window-title-captured",
     "window title captured from the packaged run",
@@ -82,162 +83,31 @@ export function identityChecks(report, probe, options) {
   );
   report.check(
     "product-identity-title",
-    "window title carries the PlayLiquid GameOS product identity",
+    "window title carries the PlayLiquid product identity",
     /playliquid/i.test(probe.title ?? "") ? "pass" : "fail",
     `expected title to match /playliquid/i (default expectation: ${JSON.stringify(expectedTitle)}); observed document.title = ${JSON.stringify(probe.title)}`,
   );
   const primary = [probe.title ?? "", ...(probe.h1s ?? []), ...(probe.headerText ?? [])].join(" | ");
-  // UX-003 TIGHTENED (spec/ux/work-items.md): the frozen contract renames the
-  // escape hatch `ZCode workbench` → `AI & Agents`, so NO ZCode branding is
-  // acceptable on the primary identity surfaces any more — window title,
-  // headings, app headers (the shell top bar IS a <header>). The old
-  // affordance-label exclusion is therefore removed; on the pre-UX-001
-  // baseline (3.14.3 still shipping the inherited `ZCode workbench` label)
-  // this honestly fails and is annotated via --baseline-expectations.
+  // The unified shell keeps internal ZCode identifiers (channels, env vars,
+  // storage keys — deliberate compatibility retention, see the theme map),
+  // but the PRIMARY identity surfaces the user reads — window title,
+  // headings, app headers — must carry the PlayLiquid identity, not ZCode.
   const zcodeBranded = /zcode/i.test(primary);
   report.check(
     "no-zcode-primary-branding",
-    "ZCode is not the primary UI identity of the product window (title, headings, headers and the shell top bar carry no ZCode text — the frozen escape-hatch label is `AI & Agents`)",
+    "ZCode is not the primary UI identity of the product window (title, headings and app headers carry no ZCode text)",
     zcodeBranded ? "fail" : "pass",
     zcodeBranded
       ? `primary surfaces carry ZCode branding: ${JSON.stringify({ title: probe.title, h1s: probe.h1s, headers: probe.headerText })}`
-      : "no ZCode branding in window title, headings, app headers or the shell top bar",
+      : "no ZCode branding in window title, headings or app headers",
   );
 }
 
-/** True when the probe shows the product shell (any of the three surfaces or the full nav triple). */
+/** True when the probe shows the real first product surface: the first-run
+ * welcome/login gate, or (defensively, e.g. for pre-seeded profiles) the
+ * workspace composer. Loading screens match neither. */
 export function shellMarkersPresent(probe) {
-  return Boolean(
-    probe.studioHeading || probe.labHeading || probe.communityHeading ||
-    (probe.navStudio && probe.navLab && probe.navCommunity),
-  );
-}
-
-export function shellChecks(report, probe) {
-  const shellPresent = shellMarkersPresent(probe);
-  report.check(
-    "product-shell-renders",
-    "the PlayLiquid product shell (Studio/Lab/Community) renders as the default surface",
-    shellPresent ? "pass" : "fail",
-    shellPresent
-      ? "PlayLiquid product shell markers present"
-      : "no PlayLiquid product-shell markers found in the rendered window; observed primary content: " +
-        JSON.stringify({ title: probe.title, h1s: probe.h1s, textHead: probe.textHead }),
-  );
-  report.check(
-    "studio-surface",
-    "Game Studio surface renders (heading + surface tabs)",
-    probe.studioHeading && probe.studioTabs.every(Boolean) ? "pass" : "fail",
-    probe.studioHeading
-      ? `studio heading found; tab markers ${JSON.stringify(PRODUCT_MARKERS.studioTabs)} present: ${JSON.stringify(probe.studioTabs)}`
-      : `studio heading ${JSON.stringify(PRODUCT_MARKERS.studioHeading)} not found (text head: ${JSON.stringify(probe.textHead)})`,
-  );
-  report.check(
-    "lab-surface",
-    "Game Engineering Lab surface renders",
-    probe.labHeading ? "pass" : "fail",
-    probe.labHeading
-      ? `lab heading found: ${JSON.stringify(PRODUCT_MARKERS.labHeading)}`
-      : `lab heading ${JSON.stringify(PRODUCT_MARKERS.labHeading)} not found`,
-  );
-  report.check(
-    "community-surface",
-    "Community surface renders",
-    probe.communityHeading ? "pass" : "fail",
-    probe.communityHeading
-      ? `community heading found: ${JSON.stringify(PRODUCT_MARKERS.communityHeading)}`
-      : `community heading ${JSON.stringify(PRODUCT_MARKERS.communityHeading)} not found`,
-  );
-  report.check(
-    "first-run-empty-state",
-    "clean profile shows the first-run / no-data state in the product shell",
-    probe.studioEmptyPackages || probe.packagesZeroPill ? "pass" : "fail",
-    probe.studioEmptyPackages
-      ? `Packages surface shows the empty state ${JSON.stringify(PRODUCT_MARKERS.studioEmptyPackages)}`
-      : probe.packagesZeroPill
-        ? "Packages tab shows a zero count pill"
-        : "no first-run empty-state marker found (product shell markers absent on this artifact)",
-  );
-}
-
-/** The representative REAL operation: pull one authoritative snapshot through
- * the production-wired StudioDataPort (the Studio refresh control). */
-export async function realOperationCheck(report, cdp) {
-  const before = await bodyText(cdp);
-  if (!before.includes(PRODUCT_MARKERS.studioHeading)) {
-    report.check(
-      "studio-real-operation",
-      "representative real operation reaches its authoritative module through production-wired ports",
-      "fail",
-      `Studio surface not present, so the ${JSON.stringify(PRODUCT_MARKERS.studioRefresh)} operation cannot run on this artifact`,
-    );
-    return;
-  }
-  const clicked = await clickByText(cdp, PRODUCT_MARKERS.studioRefresh);
-  if (!clicked?.found) {
-    report.check(
-      "studio-real-operation",
-      "representative real operation reaches its authoritative module through production-wired ports",
-      "fail",
-      `the ${JSON.stringify(PRODUCT_MARKERS.studioRefresh)} control is not rendered on the Studio surface (${clicked?.controls ?? 0} controls scanned)`,
-    );
-    return;
-  }
-  await sleep(2500);
-  const after = await bodyText(cdp);
-  const errorBanner = after.includes(PRODUCT_MARKERS.studioLoadErrorPrefix)
-    ? after.slice(after.indexOf(PRODUCT_MARKERS.studioLoadErrorPrefix), after.indexOf(PRODUCT_MARKERS.studioLoadErrorPrefix) + 160)
-    : null;
-  if (errorBanner) {
-    report.check(
-      "studio-real-operation",
-      "representative real operation reaches its authoritative module through production-wired ports",
-      "fail",
-      `the refresh operation surfaced the E11 load-failure banner: ${JSON.stringify(errorBanner)}`,
-      [`click result: ${JSON.stringify(clicked)}`],
-    );
-    return;
-  }
-  report.check(
-    "studio-real-operation",
-    "representative real operation reaches its authoritative module through production-wired ports",
-    "pass",
-    `clicked ${JSON.stringify(PRODUCT_MARKERS.studioRefresh)}; no E11 load-failure banner appeared — the authoritative snapshot pull completed through the production-wired port`,
-    [
-      `click result: ${JSON.stringify(clicked)}`,
-      `studio summary after refresh: ${JSON.stringify(after.split("\n").slice(0, 4))}`,
-    ],
-  );
-}
-
-/** Studio/Lab/Community navigation: click each product nav control and verify
- * the corresponding surface actually renders (real navigation, not just the
- * presence of markers). On pre-A/B main the nav does not exist — expected
- * baseline failure. */
-export async function navigationCheck(report, cdp) {
-  const surfaces = [
-    { label: "Studio", heading: PRODUCT_MARKERS.studioHeading },
-    { label: "Lab", heading: PRODUCT_MARKERS.labHeading },
-    { label: "Community", heading: PRODUCT_MARKERS.communityHeading },
-  ];
-  const results = [];
-  for (const surface of surfaces) {
-    const clicked = await clickByText(cdp, surface.label);
-    await sleep(1200);
-    const probe = await markerProbe(cdp);
-    const reached = Boolean(probe && probe[`${surface.label.toLowerCase()}Heading`]);
-    results.push({ label: surface.label, clicked: Boolean(clicked?.found), reached });
-  }
-  const all = results.every((entry) => entry.clicked && entry.reached);
-  report.check(
-    "product-navigation",
-    "Studio / Lab / Community navigation switches to the corresponding product surface",
-    all ? "pass" : "fail",
-    all
-      ? "all three product surfaces reachable through their navigation controls"
-      : `navigation did not reach every product surface: ${JSON.stringify(results)}`,
-    results.map((entry) => `${entry.label}: nav control ${entry.clicked ? "found+clicked" : "not found"}, surface ${entry.reached ? "rendered" : "not rendered"}`),
-  );
+  return Boolean(probe && (probe.welcomeHeading || probe.composerPlaceholderPresent));
 }
 
 /** Window-level viewport evidence. 1280x800 is captured as a REAL resized OS

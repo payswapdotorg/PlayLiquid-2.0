@@ -4,19 +4,19 @@
  *
  * The packaged-app release QA surface: window-level smoke tests of the
  * BUILT Linux application (packaged AppImage / .deb), covering startup
- * and clean shutdown, PlayLiquid product identity, product shell
- * rendering, Studio/Lab/Community navigation, first-run/no-data states,
- * clean-profile startup, no-dev-server independence and both required
- * viewports (390x844, 1280x800). UX-003 adds enforceable UX acceptance:
- * top-bar geometry at three widths (1280x800, the 480px minimum OS
- * window, 390x844 emulated — overlap/clipping/overflow/reachability
- * through computed bounding boxes), accessibility (keyboard navigation +
- * Enter/Space activation, visible focus, accessible names, heading
- * hierarchy), the frozen first-run empty-state contract and journey smoke
- * through the production-wired ports with honest typed-outcome states.
- * Evidence is actual rendering/window output (Electron under Xvfb + CDP
- * screenshots/logs), with honest baseline reporting on pre-integration
- * main. Harness code may use platform-contracts vocabulary for
+ * and clean shutdown, PlayLiquid product identity, the UNIFIED-shell
+ * golden path (welcome → auth skip → 3-step onboarding → workspace
+ * composer → five-option New Tab launcher → PlayLiquid Console side-pane
+ * tab — TL handoff §2: no separate GameOS workspace), clean-profile
+ * startup, no-dev-server independence and both required viewports
+ * (390x844, 1280x800). UX-003 adds enforceable UX acceptance: workbench
+ * chrome geometry at three widths (1280x800, the 480px minimum OS
+ * window, 390x844 emulated — overlap/clipping/overflow through computed
+ * bounding boxes) and accessibility (keyboard navigation + Enter
+ * activation on the real chrome controls, visible focus, accessible
+ * names). Evidence is actual rendering/window output (Electron under
+ * Xvfb + CDP screenshots/logs), with honest outcome reporting on every
+ * check. Harness code may use platform-contracts vocabulary for
  * tenancy-honest fixtures; it imports no domain implementation.
  */
 export const qa_desktopReleaseModule = {

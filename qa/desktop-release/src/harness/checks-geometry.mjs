@@ -1,51 +1,36 @@
 /**
- * UX-003 harness — GEOMETRY enforcement at the three mandated widths.
+ * UX-003 harness — GEOMETRY enforcement at the three mandated widths for
+ * the UNIFIED PlayLiquid workbench.
  *
  * For every geometry (the real 1280x800 OS window, the ACTUAL 480px minimum
  * OS window — MIN_DESKTOP_WINDOW_WIDTH — and the 390x844 emulated viewport)
- * the product top bar is measured through computed bounding boxes (CDP
+ * the workbench chrome is measured through computed bounding boxes (CDP
  * Runtime.evaluate on getBoundingClientRect):
  *
- * - every required bar element exists, is visible and has a non-zero box
- *   (brand, the three nav buttons, the workbench escape hatch, the window
- *   controls);
- * - no pairwise overlap between any two bar elements;
- * - no element is clipped by the viewport edges (fully inside the window);
+ * - every required chrome control exists, is visible and has a non-zero box:
+ *   the three platform window controls, the Settings control and the
+ *   side-pane toggle (the reference battery's gameos-shell bar — brand /
+ *   Studio / Lab / Community / AI & Agents + the optional overflow control —
+ *   does not exist in this product and was removed with this adaptation);
+ * - no pairwise overlap between any two required controls (the
+ *   window-controls CONTAINER is excluded — it contains its controls);
+ * - no control is clipped by the viewport edges (fully inside the window);
  * - no horizontal overflow: documentElement.scrollWidth <= innerWidth AND
- *   the bar's own scrollWidth <= clientWidth (element-level check);
- * - interactive controls' labels are not internally truncated
- *   (scrollWidth <= clientWidth per control);
- * - the full navigation stays REACHABLE: nav buttons may be collapsed into
- *   the optional frozen `gameos-shell-overflow` control — when one is not
- *   directly visible, the overflow control must open it and the check
- *   re-measures the expanded state (compact/collapsed forms allowed by the
- *   frozen contract; unreachable navigation is not).
+ *   the window-controls container's own scrollWidth <= clientWidth;
+ * - control labels are not internally truncated (scrollWidth <= clientWidth).
  *
- * DOM presence alone is NOT a pass: every geometry whose assertions fail
- * fails the run (annotated as the expected baseline failure on the
- * pre-UX-001/002 3.14.3 artifact via --baseline-expectations, never hidden).
+ * The measurement runs on whatever state the journey left (workspace with
+ * the side pane open + Console tab): when the pane is open the window
+ * controls and the toggle render inside the pane header, when closed in the
+ * workspace header — both are the real product chrome and are measured
+ * as-is. DOM presence alone is NOT a pass: every geometry whose assertions
+ * fail fails the run.
  */
 import path from "node:path";
-import { SHELL_MARKERS, VIEWPORTS, WINDOW_MIN_WIDTH } from "./config.mjs";
+import { VIEWPORTS, WINDOW_MIN_WIDTH } from "./config.mjs";
 import { saveScreenshot } from "./report.mjs";
 import { sleep } from "./memwatch.mjs";
-import {
-  analyzeGeometry,
-  barGeometryExpression,
-  elementClipped,
-  elementVisible,
-} from "./geometry-metrics.mjs";
-
-/** Click the frozen overflow control (if rendered) so collapsed navigation
- * becomes measurable — the frozen contract allows compact/collapsed forms. */
-async function openOverflowIfPresent(page) {
-  return page.evaluateValue(`(() => {
-    const control = document.querySelector('[data-testid="${SHELL_MARKERS.shellOverflow}"]');
-    if (!control) return { present: false };
-    control.click();
-    return { present: true, clicked: true, label: (control.textContent ?? "").trim().slice(0, 40) };
-  })()`);
-}
+import { analyzeGeometry, chromeGeometryExpression } from "./geometry-metrics.mjs";
 
 /** Resize the REAL OS window (Browser.setWindowBounds, window.resizeTo fallback). */
 async function resizeOsWindow(browser, page, targetId, width, height) {
@@ -110,7 +95,7 @@ async function checkGeometry(report, context, spec) {
     await sleep(800);
   }
 
-  let measured = await page.evaluateValue(barGeometryExpression());
+  const measured = await page.evaluateValue(chromeGeometryExpression());
   if (measured?.__error || !Array.isArray(measured?.viewport)) {
     report.check(
       spec.id,
@@ -124,43 +109,7 @@ async function checkGeometry(report, context, spec) {
     }
     return;
   }
-  let analysis = analyzeGeometry(measured);
-  const navKeys = ["navStudio", "navLab", "navCommunity", "workbench"];
-  const navDirectlyOk = navKeys.every((key) => {
-    const entry = measured[key];
-    return entry?.found && elementVisible(entry) && !elementClipped(entry, measured.viewport[0], measured.viewport[1]);
-  });
-
-  // Collapsed navigation is allowed ONLY through the frozen overflow control:
-  // open it and re-measure (the expanded state is the reachable state).
-  let overflowNote = "all required navigation directly visible in the bar";
-  if (!navDirectlyOk) {
-    const overflow = await openOverflowIfPresent(page);
-    if (overflow?.present) {
-      await sleep(900);
-      const reopened = await page.evaluateValue(barGeometryExpression());
-      if (reopened?.__error || !Array.isArray(reopened?.viewport)) {
-        analysis.problems.push(`the re-measurement after opening the overflow control failed: ${JSON.stringify(reopened).slice(0, 300)}`);
-      } else {
-        const stillOk = navKeys.every((key) => {
-          const entry = reopened[key];
-          return entry?.found && elementVisible(entry) && !elementClipped(entry, reopened.viewport[0], reopened.viewport[1]);
-        });
-        if (stillOk) {
-          overflowNote = `navigation collapsed behind [${SHELL_MARKERS.shellOverflow}] (label ${JSON.stringify(overflow.label)}) — expanded state measured (compact form allowed by the frozen contract)`;
-        } else {
-          overflowNote = `overflow control [${SHELL_MARKERS.shellOverflow}] present but the required navigation is STILL not visible/unclipped after opening it`;
-        }
-        measured = reopened;
-        analysis = analyzeGeometry(measured);
-        if (!stillOk) analysis.problems.push(overflowNote);
-      }
-    } else {
-      overflowNote =
-        `required navigation is not directly visible/unclipped in the bar and no overflow control [${SHELL_MARKERS.shellOverflow}] is rendered — the navigation is unreachable at this width`;
-      analysis.problems.push(overflowNote);
-    }
-  }
+  const analysis = analyzeGeometry(measured);
 
   let shotError = null;
   const shotInfo = await shot(spec.screenshot).catch((error) => {
@@ -175,8 +124,6 @@ async function checkGeometry(report, context, spec) {
   const evidence = [
     `mode: ${spec.mode === "window" ? "real OS window" : "CDP device-metrics emulation (the DevTools device-mode equivalent)"}`,
     ...windowEvidence,
-    `measured viewport: ${JSON.stringify(measured.viewport)}`,
-    overflowNote,
     ...analysis.evidence,
   ];
   if (shotInfo) {
@@ -189,7 +136,7 @@ async function checkGeometry(report, context, spec) {
     spec.title,
     analysis.problems.length === 0 ? "pass" : "fail",
     analysis.problems.length === 0
-      ? `all bar elements present, visible, non-overlapping, unclipped and reachable at ${spec.width}x${spec.height}`
+      ? `all required chrome controls present, visible, non-overlapping and unclipped at ${spec.width}x${spec.height}`
       : `${analysis.problems.length} geometry violation(s) at ${spec.width}x${spec.height}: ${analysis.problems.join("; ")}`,
     evidence,
   );
@@ -204,7 +151,7 @@ export async function geometryChecks(report, context) {
   const specs = [
     {
       id: "geometry-1280x800",
-      title: "top-bar geometry at 1280x800 (real OS window): no overlap, no clipping, no horizontal overflow, all navigation reachable",
+      title: "workbench chrome geometry at 1280x800 (real OS window): window controls, settings and side-pane toggle present, visible, non-overlapping, unclipped, no horizontal overflow",
       mode: "window",
       width: VIEWPORTS.desktop.width,
       height: VIEWPORTS.desktop.height,
@@ -212,7 +159,7 @@ export async function geometryChecks(report, context) {
     },
     {
       id: "geometry-480-window",
-      title: `top-bar geometry at the actual ${WINDOW_MIN_WIDTH}px minimum OS window: no overlap, no clipping, no horizontal overflow, all navigation reachable`,
+      title: `workbench chrome geometry at the actual ${WINDOW_MIN_WIDTH}px minimum OS window: window controls, settings and side-pane toggle present, visible, non-overlapping, unclipped, no horizontal overflow`,
       mode: "window",
       width: WINDOW_MIN_WIDTH,
       height: 720,
@@ -220,7 +167,7 @@ export async function geometryChecks(report, context) {
     },
     {
       id: "geometry-390x844-emulated",
-      title: "top-bar geometry at the 390x844 emulated viewport: no overlap, no clipping, no horizontal overflow, all navigation reachable",
+      title: "workbench chrome geometry at the 390x844 emulated viewport: window controls, settings and side-pane toggle present, visible, non-overlapping, unclipped, no horizontal overflow",
       mode: "emulated",
       width: VIEWPORTS.mobile.width,
       height: VIEWPORTS.mobile.height,
