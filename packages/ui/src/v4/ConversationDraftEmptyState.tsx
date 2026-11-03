@@ -1,5 +1,5 @@
 /**
- * 草稿态空态问候：时间问候语 + ZCode Logo。
+ * 草稿态空态问候：时间问候语 + PlayLiquid 水滴水印。
  * 自旧版 ChatView/ChatViewEmptyState.tsx 恢复（该组件随旧 ChatView 删除，
  * i18n key `chat.empty.greeting.*` 一直保留）；边界时刻自动换档逻辑保真。
  * 手机远控复用同一组件，但继续保留 20px 紧凑标题；桌面草稿首页才按标题自身宽度适配。
@@ -11,7 +11,6 @@ import {
   useRef,
   useState,
 } from "react";
-import darkEmptyStateLogoUrl from "@/assets/Z.svg";
 import { cn } from "@/components/lib/utils.js";
 import { useZCodeIntl } from "@/i18n/IntlProvider.js";
 import { useIsOfficeMode } from "@/hooks/useInterfaceMode.js";
@@ -244,7 +243,7 @@ export function ConversationDraftEmptyState({
 function ZCodeEmptyStateLogo({ className }: { className?: string }) {
   return (
     <>
-      {/* 修复原因：夜间资源已自带渐变和透明度，公共容器叠加遮罩会让它重复变淡；渐隐效果只属于浅色线框。 */}
+      {/* PlayLiquid 水滴水印：浅色主题线框（渐隐遮罩保留）。 */}
       <svg
         aria-hidden="true"
         className={cn(
@@ -262,18 +261,48 @@ function ZCodeEmptyStateLogo({ className }: { className?: string }) {
         xmlns="http://www.w3.org/2000/svg"
       >
         <path
-          d="M398.97 0.5L147.576 319.5H1.03027L37.5996 273.081L120.167 169.603L120.171 169.598L215.342 47.5605L215.343 47.5615L252.424 0.5H398.97ZM264.544 273.271H372.527L336.082 319.498H189.886L202.642 303.307C217.584 284.34 240.398 273.271 264.544 273.271ZM209.164 0.5L202.786 8.58887C183.782 32.6885 154.782 46.752 124.091 46.752H25.9805L62.4268 0.5H209.164Z"
+          d="M200 52c46.2 51.6 84.8 95.4 84.8 140.4a84.8 84.8 0 1 1-169.6 0C115.2 147.4 153.8 103.6 200 52Z"
           stroke="currentColor"
+          strokeWidth="14"
+          strokeLinejoin="round"
+          fill="none"
+        />
+        <path
+          d="M163 178.8c2.6 26.5 21.2 43.7 46.3 46.3"
+          stroke="currentColor"
+          strokeWidth="12"
+          strokeLinecap="round"
+          fill="none"
         />
       </svg>
-      {/* 深色资源包含专用渐变与模糊效果，不能通过 currentColor 复刻；主题类保证两套 Logo 互斥显示。 */}
-      <img
+      {/* 深色主题：同一水滴轮廓以 currentColor 呈现（替代旧 Z 渐变资源）。 */}
+      <svg
         aria-hidden="true"
         className={cn(className, "hidden dark:block")}
         data-v4-draft-logo="dark"
-        src={darkEmptyStateLogoUrl}
-        alt=""
-      />
+        width="400"
+        height="320"
+        viewBox="0 0 400 320"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M200 52c46.2 51.6 84.8 95.4 84.8 140.4a84.8 84.8 0 1 1-169.6 0C115.2 147.4 153.8 103.6 200 52Z"
+          stroke="currentColor"
+          strokeWidth="14"
+          strokeLinejoin="round"
+          fill="none"
+          opacity="0.5"
+        />
+        <path
+          d="M163 178.8c2.6 26.5 21.2 43.7 46.3 46.3"
+          stroke="currentColor"
+          strokeWidth="12"
+          strokeLinecap="round"
+          fill="none"
+          opacity="0.5"
+        />
+      </svg>
     </>
   );
 }

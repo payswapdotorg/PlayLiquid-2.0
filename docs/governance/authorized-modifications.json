@@ -985,6 +985,48 @@
         "architecture:check"
       ],
       "rollback": "git revert -m 1 <merge sha of worker-b-newtab-console>"
+    },
+    {
+      "path": "packages/ui/src/v4/ConversationDraftEmptyState.tsx",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "tl-integration",
+      "owner": "tl",
+      "reason": "TL branding-gap patch: replace Z watermark (inline SVG + dark Z.svg asset) with PlayLiquid droplet watermark in the draft empty-state hero",
+      "tests": [
+        "pnpm lint",
+        "desktop production build",
+        "packaged-app CDP session"
+      ],
+      "rollback": "git revert <tl integration commit>"
+    },
+    {
+      "path": "packages/desktop/vite.config.ts",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "tl-integration",
+      "owner": "tl",
+      "reason": "TL build-infra: env-gated ZCODE_BUILD_SOURCEMAPS=0 for low-memory build environments (default hidden-sourcemap behavior unchanged for CI)",
+      "tests": [
+        "pnpm lint",
+        "desktop production build",
+        "packaged-app CDP session"
+      ],
+      "rollback": "git revert <tl integration commit>"
+    },
+    {
+      "path": "pnpm-lock.yaml",
+      "change": "modified",
+      "surface": "allowed",
+      "workPackage": "tl-integration",
+      "owner": "tl",
+      "reason": "TL integration: lockfile absorbs @playliquid/gameos workspace package deps",
+      "tests": [
+        "pnpm lint",
+        "desktop production build",
+        "packaged-app CDP session"
+      ],
+      "rollback": "git revert <tl integration commit>"
     }
   ]
 }
