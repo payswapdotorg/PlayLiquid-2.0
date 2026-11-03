@@ -10,6 +10,7 @@ export type OpenTabLauncherItemId =
   | "review"
   | "terminal"
   | "browser"
+  | "playliquid-console"
   | "developer-tools";
 
 export function resolveOpenTabLauncherItemIds({
@@ -36,6 +37,9 @@ export function resolveOpenTabLauncherItemIds({
   if (!hasReviewTab) {
     itemIds.push("review");
   }
+
+  // PlayLiquid Console（GameOS 世界项目工作台）是内置第五入口，排在 review 之后。
+  itemIds.push("playliquid-console");
 
   // Sites 面板是官方插件 zcode-site 的 UI surface，产品要求作为内置入口排在辅助对话前。
   if (canOpenSites) {

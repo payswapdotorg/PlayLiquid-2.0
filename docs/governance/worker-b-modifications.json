@@ -1,0 +1,148 @@
+{
+  "workPackage": "worker-b-newtab-console",
+  "owner": "worker-b",
+  "task": "3-b",
+  "branch": "worker-b/newtab-console",
+  "baseline": "05406185ceb498d7174445690a7893e7a3200ca7",
+  "files": [
+    {
+      "path": "scripts/engineering-test-files.json",
+      "change": "modified",
+      "reason": "Registered the six new engineering (vitest) test files: packages/playliquid-gameos/src/console/console-host.test.ts, packages/playliquid-gameos/src/gameos-projects/{fakes,projects-store,projects-store-refusals,view-model}.test.ts and packages/ui/src/app-shell/animatedSidePanePanelModel.test.ts. Additions only, inserted in the packages block; no existing entry reordered or removed."
+    },
+    {
+      "path": "architecture-policy.yaml",
+      "change": "modified",
+      "reason": "Two additions only: (1) registered the playliquid-gameos managed module row (roots packages/playliquid-gameos, requires [], publicEntrypoints packages/playliquid-gameos/src/index.ts, layers adapters: ., owner worker-b) copied from the sqlite-migrations row format, matching the package's own module.ts manifest; (2) one disable-count exception for packages/playliquid-gameos/src/game-contracts/git.ts — the control-character validation regex of the branch/tag name vocabulary carries a single verbatim-upstream eslint-disable (same precedent as the reference repo's gen-ui-tweak-runtime-lint exception). Verified: node scripts/architecture/architecture-check.mjs check → 0 violations (full and --changed scopes)."
+    },
+    {
+      "path": "packages/ui/package.json",
+      "change": "modified",
+      "reason": "Added the single workspace dependency \"@playliquid/gameos\": \"workspace:*\" (alphabetical position among dependencies) so the side-pane content switch can mount PlayLiquidConsolePane from the consolidated GameOS module."
+    },
+    {
+      "path": "packages/ui/tsconfig.json",
+      "change": "modified",
+      "reason": "Added project reference { \"path\": \"../playliquid-gameos\" } so tsc -b resolves @playliquid/gameos through the module's declaration output (dist/*.d.ts, emitDeclarationOnly build like the @zcode/shared precedent) instead of pulling GameOS sources into the ui program's inputs. Comment documents the rationale next to the existing rpc reference note."
+    },
+    {
+      "path": "packages/ui/src/app-shell/animatedSidePanePanelModel.ts",
+      "change": "modified",
+      "reason": "New Tab launcher model: added \"playliquid-console\" to the OpenTabLauncherItemId union and pushed it unconditionally after review in resolveOpenTabLauncherItemIds — built-in order files, browser, terminal, review, playliquid-console, then the existing conditional items (sites, selection-side-conversation, developer-tools). Existing entries untouched."
+    },
+    {
+      "path": "packages/ui/src/app-shell/AnimatedSidePanePanel.tsx",
+      "change": "modified",
+      "reason": "Launcher integration: (1) import PlayLiquidConsolePane from @playliquid/gameos and Gamepad2Icon from lucide-react; (2) onOpenPlayLiquidConsole: () => void added to the component's inline props type and destructured; (3) openTabLauncherItemById gains the playliquid-console row (label sidePane.playliquidConsole, description sidePane.launcher.playliquidConsole, Gamepad2Icon, onOpen onOpenPlayLiquidConsole); (4) content switch gains tab.type === \"playliquid-console\" ? <PlayLiquidConsolePane /> before the terminal branch — the pane fills the TabsContent chrome (h-full min-h-0) and the whole panel already sits inside the shared ScopedErrorBoundary, mirroring the developer-tools pattern; (5) SidePaneTabOverview labels gain playLiquidConsoleTitle."
+    },
+    {
+      "path": "packages/ui/src/lib/workspaceSidePane.ts",
+      "change": "modified",
+      "reason": "Side-pane tab type: PlayLiquidConsoleSidePaneTab (singleton id \"playliquid-console\", mirroring DeveloperToolsSidePaneTab including the string|null owner fields of every sibling), added to the WorkspaceSidePaneTab union; createPlayLiquidConsoleSidePaneTab; activatePlayLiquidConsoleSidePane mirroring activateDeveloperToolsSidePane; visibility scope: playliquid-console joins the git/developer-tools/plugin-market/treemapping always-visible-within-workspace case. No existing case changed."
+    },
+    {
+      "path": "packages/ui/src/hooks/useAppPanels.ts",
+      "change": "modified",
+      "reason": "handleOpenPlayLiquidConsole mirroring handleOpenDeveloperTools (revealSidePaneForCurrentOwner + commitOpenedSidePaneState over activatePlayLiquidConsoleSidePane + mode=playliquid-console log line); import of activatePlayLiquidConsoleSidePane; exported in the hook's return object next to the sibling handlers."
+    },
+    {
+      "path": "packages/ui/src/app-shell/types.ts",
+      "change": "modified",
+      "reason": "WorkspaceShellLayoutProps gains handleOpenPlayLiquidConsole: () => void right after handleOpenDeveloperTools."
+    },
+    {
+      "path": "packages/ui/src/App.tsx",
+      "change": "modified",
+      "reason": "Destructured handleOpenPlayLiquidConsole from useAppPanels and passed it to the single <WorkspaceShellLayout> render site next to handleOpenDeveloperTools."
+    },
+    {
+      "path": "packages/ui/src/app-shell/WorkspaceShellLayout.tsx",
+      "change": "modified",
+      "reason": "Destructured handleOpenPlayLiquidConsole from WorkspaceShellLayoutProps and passed onOpenPlayLiquidConsole={handleOpenPlayLiquidConsole} to AnimatedSidePanePanel next to onOpenDeveloperTools."
+    },
+    {
+      "path": "packages/ui/src/app-shell/sidePaneTabPresentation.ts",
+      "change": "modified",
+      "reason": "Tab presentation: playLiquidConsoleTitle added to SidePaneTabPresentationLabels (required string, construction site updated in AnimatedSidePanePanel); getSidePaneTabSearchHint gains the playliquid-console hint (\"playliquid console gameos world projects package registry community review\"); getLocalizedSidePaneTabTitle maps sidePane.playliquidConsoleTab; getSidePaneTabTypeLabel returns the new label for the tab type."
+    },
+    {
+      "path": "packages/ui/src/app-shell/SidePaneTabTrigger.tsx",
+      "change": "modified",
+      "reason": "SidePaneTabIcon renders Gamepad2Icon for tab.type === \"playliquid-console\" (same glyph as the launcher row, so launcher → tab does not jump icons); getSidePaneTabTitle returns formatMessage({ id: \"sidePane.playliquidConsoleTab\" }) for the type."
+    },
+    {
+      "path": "packages/ui/src/app-shell/SidePaneTabOverview.tsx",
+      "change": "modified",
+      "reason": "Added labels.playLiquidConsoleTitle to the two useMemo dependency arrays (title/type-label projections now depend on it), matching how developerToolsTitle is listed."
+    },
+    {
+      "path": "packages/ui/src/i18n/locales/en-US.ts",
+      "change": "modified",
+      "reason": "Additions only, inserted after sidePane.launcher.developer-tools: sidePane.playliquidConsole \"PlayLiquid Console\", sidePane.launcher.playliquidConsole \"World projects, runtime and GameOS operations.\", sidePane.playliquidConsoleTab \"PlayLiquid Console\" (tab-title key consumed by sidePaneTabPresentation/SidePaneTabTrigger). No existing key touched, reordered or reformatted."
+    },
+    {
+      "path": "packages/ui/src/i18n/locales/zh-CN.ts",
+      "change": "modified",
+      "reason": "Additions only, same three keys at the same anchor: sidePane.playliquidConsole \"PlayLiquid 控制台\", sidePane.launcher.playliquidConsole \"世界项目、运行时与 GameOS 操作。\", sidePane.playliquidConsoleTab \"PlayLiquid 控制台\". No existing value changed (Worker A owns them)."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/gameos-projects/index.ts",
+      "change": "modified",
+      "reason": "Import-specifier hygiene only (post-port, my own file from this branch's first commit): the workbench entrypoint's component re-exports switched from .tsx specifiers (reference-repo style) to .js specifiers so the emitted declaration output (dist/*.d.ts, consumed by packages/ui through the project reference) resolves cleanly under NodeNext — the repo-wide convention recorded in packages/ui/tsconfig.json's header comment. No export added or removed."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/gameos-projects/app/projects-app.tsx",
+      "change": "modified",
+      "reason": "Import-specifier hygiene only (.tsx → .js for the ProjectsShell import); behavior identical."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/gameos-projects/components/projects-shell.tsx",
+      "change": "modified",
+      "reason": "Import-specifier hygiene only (.tsx → .js for the five panel/primitive imports); behavior identical."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/gameos-projects/components/composition-panel.tsx",
+      "change": "modified",
+      "reason": "Import-specifier hygiene only (.tsx → .js for the three primitive imports); behavior identical."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/gameos-projects/components/project-overview-panel.tsx",
+      "change": "modified",
+      "reason": "Import-specifier hygiene only (.tsx → .js for the three primitive imports); behavior identical."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/gameos-projects/components/project-list-panel.tsx",
+      "change": "modified",
+      "reason": "Import-specifier hygiene only (.tsx → .js for the three primitive imports); behavior identical."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/gameos-projects/components/semantic-pr-panel.tsx",
+      "change": "modified",
+      "reason": "Import-specifier hygiene only (.tsx → .js for the three primitive imports); behavior identical."
+    },
+    {
+      "path": "packages/playliquid-gameos/tsconfig.json",
+      "change": "modified",
+      "reason": "Post-port fix of my own first-commit file: adopted the reference game-contracts shape (composite via base, emitDeclarationOnly + allowImportingTsExtensions, outDir dist / rootDir src, strict) so the package emits the declarations the packages/ui project reference consumes; root manifest artifacts (module.ts/contract.ts/contract.example.ts) stay outside the emit program (they are architecture-policy data files)."
+    },
+    {
+      "path": "packages/playliquid-gameos/.gitignore",
+      "change": "modified",
+      "reason": "Post-port fix of my own first-commit file: added *.d.ts / *.d.ts.map so stray declaration outputs at the package root can never be committed (dist/ and *.tsbuildinfo were already ignored)."
+    },
+    {
+      "path": "packages/playliquid-gameos/src/console/console-host.test.ts",
+      "change": "modified",
+      "reason": "Post-port fix of my own first-commit file: three branded-id literals now use the reference test convention (\"sha256:…\" as never), the registry-coordinate probe casts through unknown, and the round-trip intent reuses the service's own branded contributionId — the file now typechecks clean under the package's strict tsconfig."
+    }
+  ],
+  "addedFilesSummary": "235 added files: 234 under packages/playliquid-gameos/ (module manifest CONTRACT.md, contract.ts, contract.example.ts, module.ts, package.json, tsconfig.json, .gitignore + 227 src files across the consolidated submodules artifact-store, community, console, game-contracts, game-ir, gameos-projects [app/components/fixtures/view], git-lineage, package-registry, package-system, platform-contracts — a verbatim port of the PlayLiquid reference domain packages with cross-package imports rewritten to in-module relative paths, plus the new in-process console host, console adapters, status projection and PlayLiquidConsolePane), and 1 test packages/ui/src/app-shell/animatedSidePanePanelModel.test.ts (New Tab launcher model contract, vitest).",
+  "notes": [
+    "Step 0 and Step 1 landed together in commit e92fc596: the predecessor left the GameOS port AND the console host/pane complete-but-uncommitted; both were verified (typecheck clean, 677/677 domain tests green via bun test, console-host composition facts green) before the single port commit, so no separate console commit exists.",
+    "Real in-process services behind the console: the package registry (openRegistry over an in-memory RegistryStore port), the CommunityService (PL-032) over host adapters (wall clock, content-addressed snapshot store, single-operator subject directory with maintainer standing), the E8 package-qualification seam reading the real registry, and checkReleaseGate for provenance verdicts — the desktop-host.ts composition pattern replicated in-process. Honestly NOT configured: the world-project registry read model (projects list is its real empty state, 'No world projects yet' onboarding surface), the R18 capability-gap seam (exists:false for every link — no Lab service composed), and persistence is session-scoped in-memory (recorded limitation, never faked). No test doubles in production paths — ScriptedProjectsDataPort/StaticProjectsDataPort/demoProjectsSnapshot are exported TEST-SUPPORT only.",
+    "The brief's \"ProjectsDataPort.load(): Promise<ProjectsLoadResult>\" is implemented as the ported ports.ts actually defines it: load(): ProjectsLoadResult (synchronous pull); dispatch(intent) is async as specified.",
+    "packages/ui/src/lib/taskSidePaneMemory.ts needed NO change: normalizeWorkspaceSidePaneState only filters treemapping tabs (verified) — playliquid-console tabs survive normalization by construction.",
+    "No unmanaged-new-file exception was needed for the packages/ui registration points: all ui edits modify tracked files, and the one new ui file is a *.test.ts which the unmanaged-new-file rule exempts (TEST_LIKE); the playliquid-gameos sources are covered by the newly registered managed module row.",
+    "Verification in this worktree (no pnpm install allowed): bun test → 677/677 gameos + 4/4 new launcher-model tests; package tsc (emitDeclarationOnly) clean; a strict consumer simulation with a project reference to playliquid-gameos resolved everything through dist/*.d.ts with zero errors; oxlint on every touched file → 0 errors, 0 new warnings (10 pre-existing/verbatim-port warnings); node scripts/architecture/architecture-check.mjs check → OK (full and --changed)."
+  ]
+}

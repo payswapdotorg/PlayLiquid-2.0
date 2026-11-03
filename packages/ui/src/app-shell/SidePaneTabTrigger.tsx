@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   FolderOpenIcon,
+  Gamepad2Icon,
   PuzzleIcon,
   BotIcon,
   BotMessageSquareIcon,
@@ -344,6 +345,12 @@ export function SidePaneTabIcon({ tab }: { tab: WorkspaceSidePaneTab }) {
     return <BugIcon className="size-3.5" />;
   }
 
+  // PlayLiquid Console（GameOS 世界项目工作台）：与 New Tab 启动器同一枚 Gamepad2 字形，
+  // 启动器与 tab 条一致，点开不跳变。
+  if (tab.type === "playliquid-console") {
+    return <Gamepad2Icon className="size-3.5" />;
+  }
+
   if (tab.type === "terminal" || tab.type === "bash-output") {
     return <SquareTerminalIcon className="size-3.5" />;
   }
@@ -557,6 +564,10 @@ export function getSidePaneTabTitle(
 
   if (tab.type === "developer-tools") {
     return formatMessage({ id: "developerTools.title" });
+  }
+
+  if (tab.type === "playliquid-console") {
+    return formatMessage({ id: "sidePane.playliquidConsoleTab" });
   }
 
   if (tab.type === "terminal" || tab.type === "bash-output") {

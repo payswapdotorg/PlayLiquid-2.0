@@ -10,6 +10,7 @@ export interface SidePaneTabPresentationLabels {
   whiteboardTitle: string;
   modelTrajectoryTitle: string;
   developerToolsTitle: string;
+  playLiquidConsoleTitle: string;
   pluginMarketTitle: string;
   newTabTitle?: string;
   browserPermissionsTitle: string;
@@ -74,6 +75,9 @@ export function getSidePaneTabSearchHint(tab: WorkspaceSidePaneTab): string {
   if (tab.type === "developer-tools") {
     return "developer tools token debug network status request response headers";
   }
+  if (tab.type === "playliquid-console") {
+    return "playliquid console gameos world projects package registry community review";
+  }
   if (tab.type === "terminal" || tab.type === "bash-output")
     return `${tab.title} terminal shell command`;
   if (tab.type === "file-manager") return `${tab.target.workspacePath} ${tab.source?.path ?? ""}`;
@@ -96,6 +100,7 @@ export function getLocalizedSidePaneTabTitle(
       "whiteboard.title": labels.whiteboardTitle,
       "modelTrajectory.title": labels.modelTrajectoryTitle,
       "developerTools.title": labels.developerToolsTitle,
+      "sidePane.playliquidConsoleTab": labels.playLiquidConsoleTitle,
       "workspace.openPluginsSettings": labels.pluginMarketTitle,
       "terminal.title": labels.terminalTitle,
       "sidePane.subagent": labels.subagentTypeLabel,
@@ -136,6 +141,7 @@ export function getSidePaneTabTypeLabel(
   if (tab.type === "whiteboard") return labels.whiteboardTitle;
   if (tab.type === "model-trajectory") return labels.modelTrajectoryTitle;
   if (tab.type === "developer-tools") return labels.developerToolsTitle;
+  if (tab.type === "playliquid-console") return labels.playLiquidConsoleTitle;
   if (tab.type === "terminal" || tab.type === "bash-output") return labels.terminalTitle;
   return labels.codeViewerTitle;
 }
