@@ -1,0 +1,34 @@
+Command palette
+
+Search and run commands available in this workspace.
+
+New task
+Ctrl+N
+Automations
+Plugin Marketplace
+Task list
+Projects
+Tasks
+No tasks yet
+Connect
+Mobile remote control
+
+Evening, nice work today
+
+No model available. Upgrade or set a custom model.
+Upgrade
+Set
+Select project
+
+
+
+
+Ask PlayLiquid anything, @ to add context, / for commands or capabilities
+Add context
+Ask before changes
+Manage models
+Send
+Weekly Summary
+Error Fix
+PPT Creation
+Idle-time task

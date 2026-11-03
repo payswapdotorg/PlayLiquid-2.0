@@ -1,0 +1,44 @@
+{
+  "rows": [
+    {
+      "id": "files",
+      "text": "FilesSelect a file from the navigationOpen"
+    },
+    {
+      "id": "browser",
+      "text": "BrowserBrowse websites and preview apps.Open"
+    },
+    {
+      "id": "terminal",
+      "text": "TerminalRun commands and view output.Open"
+    },
+    {
+      "id": "review",
+      "text": "ReviewReview code changes and diffs.Open"
+    },
+    {
+      "id": "playliquid-console",
+      "text": "PlayLiquid ConsoleWorld projects, runtime and GameOS operations.Open"
+    },
+    {
+      "id": "files",
+      "text": "FilesSelect a file from the navigationOpen"
+    },
+    {
+      "id": "browser",
+      "text": "BrowserBrowse websites and preview apps.Open"
+    },
+    {
+      "id": "terminal",
+      "text": "TerminalRun commands and view output.Open"
+    },
+    {
+      "id": "review",
+      "text": "ReviewReview code changes and diffs.Open"
+    },
+    {
+      "id": "playliquid-console",
+      "text": "PlayLiquid ConsoleWorld projects, runtime and GameOS operations.Open"
+    }
+  ]
+}
