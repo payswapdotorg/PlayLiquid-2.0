@@ -1,31 +1,48 @@
 /**
- * UX-003 harness — ACCESSIBILITY checks on the packaged product shell.
+ * RW-003 harness — ACCESSIBILITY checks on the UNIFIED PlayLiquid shell
+ * (the real ZCode workbench surface, post-journey: workspace + side pane).
  *
- * All interaction is driven the way a keyboard user does it: CDP
- * Input.dispatchKeyEvent (Tab / Enter / Space) — never synthetic el.click()
- * for the paths under test.
+ * All keyboard interaction is driven the way a keyboard user does it: CDP
+ * Input.dispatchKeyEvent (Tab / Enter) — synthetic el.click() is never used
+ * for the paths under test (el.focus() is used ONLY to position focus on a
+ * real element when Tab could not reach it, and that fact is recorded).
  *
- * - a11y-keyboard-navigation: Tab reaches the bar navigation (Game Studio →
- *   Lab → Community → the AI & Agents escape hatch) in a sensible order
- *   (DOM order; the brand cluster comes first when it is focusable), and
- *   Enter/Space actually ACTIVATE a nav button (surface switches,
- *   aria-current="page" moves).
- * - a11y-visible-focus: the keyboard-focused bar control shows a visible
+ * - a11y-keyboard-navigation: Tab reaches the REAL chrome controls — the
+ *   three window controls ([data-testid=window-control-minimize|
+ *   maximize|close]), the Settings control ([data-testid=
+ *   task-settings-button]) and the side-pane toggle ([data-testid=
+ *   side-pane-toggle]) — within a BOUNDED walk (max 40 tabs, never looping
+ *   on nonexistent selectors; the reference harness's gameos-nav loop died
+ *   with `page: already closed` and is gone). The observed focus order is
+ *   recorded as evidence, not asserted against an invented expectation.
+ *   Keyboard ACTIVATION is then proven twice: Enter on the side-pane toggle
+ *   expands the pane (the add-tab trigger becomes present), and Enter on a
+ *   New Tab launcher row ([data-side-pane-open-tab-item=files]) opens a real
+ *   pane tab ([data-side-pane-tab-id] appears).
+ * - a11y-visible-focus: the keyboard-focused chrome controls show a visible
  *   focus indicator (computed outline, box-shadow, or a focused-vs-blurred
  *   style change — however the shell draws it).
- * - a11y-accessible-names: every visible interactive element (bar + active
- *   surface) has an accessible name (aria-label / aria-labelledby / text /
+ * - a11y-accessible-names: every visible interactive element on the active
+ *   surface has an accessible name (aria-label / aria-labelledby / text /
  *   title).
- * - a11y-heading-hierarchy: every surface has exactly its h1 as the first
- *   visible heading and visible heading levels never skip.
  *
- * DOM presence alone is NOT a pass. Pre-UX-001 failures are annotated as
- * expected baseline failures (--baseline-expectations), never hidden.
+ * DOM presence alone is NOT a pass; every outcome records what was observed.
  */
-import { PRODUCT_MARKERS, SHELL_MARKERS } from "./config.mjs";
+import { DEFAULTS, SHELL_MARKERS } from "./config.mjs";
 import { sleep } from "./memwatch.mjs";
 
-const NAV_TESTIDS = [SHELL_MARKERS.navStudio, SHELL_MARKERS.navLab, SHELL_MARKERS.navCommunity, SHELL_MARKERS.navWorkbench];
+/** Hard bound for every tab walk — the fatal CI lesson (checks-a11y.mjs
+ * tabUntil'ing through nonexistent gameos-nav testids until the page died). */
+const MAX_TABS = 40;
+
+/** The REAL chrome controls the tab-order phase must reach. */
+const FOCUS_TARGETS = [
+  { testid: "window-control-minimize", label: "Minimize window control" },
+  { testid: "window-control-maximize", label: "Maximize/restore window control" },
+  { testid: "window-control-close", label: "Close window control" },
+  { testid: SHELL_MARKERS.taskSettingsButton, label: "Settings control (sidebar footer)" },
+  { testid: SHELL_MARKERS.sidePaneToggle, label: "Side pane toggle" },
+];
 
 /** One keyboard key press through the real CDP input pipeline.
  * Activation requires a NON-raw keyDown: CDP treats a `keyDown` without
@@ -47,10 +64,6 @@ function pressEnter(page) {
   return pressKey(page, { key: "Enter", code: "Enter", keyCode: 13, text: "\r" });
 }
 
-function pressSpace(page) {
-  return pressKey(page, { key: " ", code: "Space", keyCode: 32, text: " " });
-}
-
 /** A compact description of the currently focused element. */
 const ACTIVE_PROBE = `(() => {
   const el = document.activeElement;
@@ -70,8 +83,9 @@ async function activeElement(page) {
   return page.evaluateValue(ACTIVE_PROBE);
 }
 
-/** Tab forward until the element with `testid` is focused (bounded). */
-async function tabUntil(page, testid, maxTabs = 30) {
+/** Tab forward until the element with `testid` is focused — STRICTLY bounded
+ * (maxTabs); never loops on a selector that does not exist. */
+async function tabUntil(page, testid, maxTabs = MAX_TABS) {
   for (let i = 0; i < maxTabs; i += 1) {
     const active = await activeElement(page);
     if (active?.testid === testid) return { reached: true, tabs: i, active };
@@ -81,193 +95,272 @@ async function tabUntil(page, testid, maxTabs = 30) {
   return { reached: false, tabs: maxTabs, active: await activeElement(page) };
 }
 
-/** Click the frozen nav control (testid) — used to position surfaces, never
- * as a substitute for the keyboard paths this file asserts. */
-async function clickNav(page, testid) {
-  return page.evaluateValue(`(() => {
-    const el = document.querySelector('[data-testid="${testid}"]');
-    if (!el) return { found: false };
-    el.click();
-    return { found: true };
-  })()`);
+/** Focus the element with `testid` via Tab when possible, else a direct
+ * programmatic focus — the method used is always returned for the evidence. */
+async function focusByTestid(page, testid, maxTabs = MAX_TABS) {
+  const existing = await page
+    .evaluateValue(`(() => {
+      const el = document.querySelector('[data-testid="${testid}"]');
+      if (!el) return { present: false };
+      return { present: true, ariaLabel: el.getAttribute("aria-label") };
+    })()`)
+    .catch(() => ({ present: false }));
+  if (!existing?.present) {
+    return { present: false, method: "not-found", ariaLabel: null };
+  }
+  const walked = await tabUntil(page, testid, maxTabs);
+  if (walked.reached) {
+    return { present: true, method: `tab (${walked.tabs} tabs)`, ariaLabel: existing.ariaLabel };
+  }
+  const focused = await page
+    .evaluateValue(`(() => {
+      const el = document.querySelector('[data-testid="${testid}"]');
+      if (!el) return { ok: false };
+      el.focus();
+      return { ok: document.activeElement === el };
+    })()`)
+    .catch(() => ({ ok: false }));
+  return {
+    present: true,
+    method: focused?.ok ? "programmatic el.focus() (Tab did not reach it within the bound)" : "focus failed",
+    ariaLabel: existing.ariaLabel,
+  };
 }
 
-/** Is the surface heading (by exact text) currently visible? */
-function headingVisibleExpression(text) {
-  return `(() => {
-    const headings = [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")];
-    const match = headings.find((el) => (el.textContent ?? "").trim() === ${JSON.stringify(text)});
-    if (!match) return { found: false };
-    const r = match.getBoundingClientRect();
-    const cs = getComputedStyle(match);
-    return { found: true, visible: cs.display !== "none" && cs.visibility !== "hidden" && r.width > 0 && r.height > 0, rect: [r.left, r.top, r.width, r.height] };
-  })()`;
+/** Is an element matching `selector` present (and visible when asked)? */
+async function selectorState(page, selector, { visible = true } = {}) {
+  return page.evaluateValue(`(() => {
+    const el = document.querySelector(${JSON.stringify(selector)});
+    if (!el) return { present: false };
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    const isVisible = cs.display !== "none" && cs.visibility !== "hidden" && r.width > 0 && r.height > 0;
+    return { present: true, visible: isVisible };
+  })()`).catch(() => ({ present: false, __error: true }));
+}
+
+/** Click an element (positioning action only — the keyboard paths under
+ * test are asserted through Input.dispatchKeyEvent, never el.click()). */
+async function clickSelector(page, selector) {
+  return page
+    .evaluateValue(`(() => {
+      const el = document.querySelector(${JSON.stringify(selector)});
+      if (!el) return { found: false };
+      el.click();
+      return { found: true, ariaLabel: el.getAttribute("aria-label") };
+    })()`)
+    .catch(() => ({ found: false }));
 }
 
 /** The keyboard-navigation + activation check. */
 export async function keyboardNavigationCheck(report, page) {
   const evidence = [];
+  const problems = [];
   await page.evaluate(`window.focus()`).catch(() => undefined);
   const initial = await activeElement(page);
   evidence.push(`start: document.hasFocus=${initial.hasFocus}, activeElement=${initial.body ? "body" : `${initial.tag}[${initial.testid ?? initial.label}]`}`);
 
-  // 1. Tab through the beginning of the document and record the order.
+  // 1. Bounded tab walk: record the focus order and which REAL chrome
+  //    controls receive focus. The order is recorded as observed — no
+  //    invented expectation; pass requires each target to be reachable.
   const sequence = [];
-  let studioSeen = -1;
-  let labSeen = -1;
-  let communitySeen = -1;
-  let workbenchSeen = -1;
-  let brandSeen = -1;
-  for (let i = 0; i < 16; i += 1) {
+  const firstSeen = new Map();
+  for (let i = 0; i < MAX_TABS; i += 1) {
     await pressTab(page);
     await sleep(120);
     const active = await activeElement(page);
-    sequence.push(active?.body ? "body" : active?.testid ?? active?.label ?? active?.tag ?? "?");
-    const last = sequence[sequence.length - 1];
-    if (last === SHELL_MARKERS.brand && brandSeen === -1) brandSeen = i;
-    if (last === SHELL_MARKERS.navStudio && studioSeen === -1) studioSeen = i;
-    if (last === SHELL_MARKERS.navLab && labSeen === -1) labSeen = i;
-    if (last === SHELL_MARKERS.navCommunity && communitySeen === -1) communitySeen = i;
-    if (last === SHELL_MARKERS.navWorkbench && workbenchSeen === -1) workbenchSeen = i;
-    if (workbenchSeen !== -1) break; // the whole bar has been traversed
+    const entry = active?.body ? "body" : active?.testid ?? active?.label ?? active?.tag ?? "?";
+    sequence.push(entry);
+    for (const target of FOCUS_TARGETS) {
+      if (active?.testid === target.testid && !firstSeen.has(target.testid)) {
+        firstSeen.set(target.testid, i);
+      }
+    }
+    if (firstSeen.size === FOCUS_TARGETS.length) break; // every target seen
   }
-  evidence.push(`tab order observed: ${sequence.join(" -> ")}`);
-
-  const problems = [];
-  for (const [name, index] of [
-    ["Game Studio nav", studioSeen],
-    ["Lab nav", labSeen],
-    ["Community nav", communitySeen],
-    ["AI & Agents escape hatch", workbenchSeen],
-  ]) {
-    if (index === -1) problems.push(`${name} is never reached by Tab`);
+  evidence.push(`tab order observed (first ${sequence.length} stops): ${sequence.join(" -> ")}`);
+  // Second bounded attempt for any target the walk missed (focus may start
+  // deep inside the document; tabUntil walks on from wherever focus is).
+  for (const target of FOCUS_TARGETS) {
+    if (firstSeen.has(target.testid)) continue;
+    const retried = await tabUntil(page, target.testid, 25);
+    if (retried.reached) {
+      firstSeen.set(target.testid, MAX_TABS + retried.tabs);
+      evidence.push(`${target.label} [${target.testid}]: reached by extended tabbing (${retried.tabs} further tabs) after the primary walk`);
+    }
   }
-  const sensible =
-    studioSeen !== -1 && labSeen !== -1 && communitySeen !== -1 && workbenchSeen !== -1 &&
-    studioSeen < labSeen && labSeen < communitySeen && communitySeen < workbenchSeen;
-  if (
-    studioSeen !== -1 && labSeen !== -1 && communitySeen !== -1 && workbenchSeen !== -1 && !sensible
-  ) {
-    problems.push(
-      `tab order is not sensible: first-focus order was Game Studio@${studioSeen}, Lab@${labSeen}, Community@${communitySeen}, AI & Agents@${workbenchSeen} (expected the bar's DOM order)`,
-    );
-  }
-  if (brandSeen !== -1 && studioSeen !== -1 && brandSeen > studioSeen) {
-    problems.push(`the brand cluster receives focus AFTER the navigation (brand@${brandSeen} > Game Studio@${studioSeen}) — not a sensible order`);
+  for (const target of FOCUS_TARGETS) {
+    const at = firstSeen.get(target.testid);
+    if (at === undefined) {
+      problems.push(`${target.label} [${target.testid}] is never reached by Tab within the bounded walk (${MAX_TABS} + 25 tabs)`);
+    } else {
+      evidence.push(`${target.label} [${target.testid}]: first focused at tab stop ${at + 1}`);
+    }
   }
   evidence.push(
-    brandSeen === -1
-      ? `brand cluster [${SHELL_MARKERS.brand}]: not focusable (a static brand is acceptable; recorded honestly)`
-      : `brand cluster focused at tab ${brandSeen + 1} (before the navigation — sensible)`,
+    `focus order among the chrome controls (observed, not asserted): ${FOCUS_TARGETS.filter((target) => firstSeen.has(target.testid))
+      .sort((a, b) => firstSeen.get(a.testid) - firstSeen.get(b.testid))
+      .map((target) => target.testid)
+      .join(" -> ")}`,
   );
 
-  // 2. Keyboard ACTIVATION: Enter on the Lab nav switches the surface.
-  const lab = await tabUntil(page, SHELL_MARKERS.navLab);
+  // 2. Keyboard ACTIVATION: Enter on the side-pane toggle expands the pane.
+  //    Position the pane COLLAPSED first (the journey leaves it open with
+  //    the Console tab): one positioning click on the toggle, then the
+  //    expansion itself is proven with the keyboard.
+  const triggerNow = await selectorState(page, SHELL_MARKERS.addTabTrigger, { visible: false });
+  if (triggerNow?.present) {
+    const collapsed = await clickSelector(page, `[data-testid="${SHELL_MARKERS.sidePaneToggle}"]`);
+    await sleep(900);
+    evidence.push(`positioning: pane was open after the journey — clicked the toggle to collapse it (${JSON.stringify(collapsed)}) so the keyboard path can prove EXPANSION`);
+  }
+  const toggleFocused = await focusByTestid(page, SHELL_MARKERS.sidePaneToggle);
+  evidence.push(`side pane toggle focus: ${JSON.stringify(toggleFocused)}`);
   await pressEnter(page);
-  await sleep(1400);
-  const labHeading = await page.evaluateValue(headingVisibleExpression(PRODUCT_MARKERS.labHeading));
-  const labCurrent = await page.evaluateValue(
-    `document.querySelector('[data-testid="${SHELL_MARKERS.navLab}"]')?.getAttribute("aria-current") ?? null`,
-  );
-  const enterActivated = Boolean(labHeading?.found && labHeading?.visible) && labCurrent === "page";
-  evidence.push(
-    `Enter on the Lab nav: focus reached=${lab.reached} (after ${lab.tabs} tabs); aria-current=${JSON.stringify(labCurrent)}; lab heading visible=${JSON.stringify(labHeading?.visible ?? null)}`,
-  );
-  if (!enterActivated) {
-    problems.push("Enter does not activate the Lab navigation (surface did not switch / aria-current did not move)");
+  let expanded = false;
+  {
+    const deadline = Date.now() + DEFAULTS.uiStateTimeoutMs;
+    while (Date.now() < deadline) {
+      const state = await selectorState(page, SHELL_MARKERS.addTabTrigger);
+      if (state?.present && state?.visible) {
+        expanded = true;
+        break;
+      }
+      await sleep(DEFAULTS.uiStatePollMs);
+    }
+  }
+  evidence.push(`Enter on [${SHELL_MARKERS.sidePaneToggle}]: pane expanded (add-tab trigger present) = ${expanded}`);
+  if (!expanded) {
+    problems.push(`Enter on the side pane toggle does not expand the pane (add-tab trigger ${SHELL_MARKERS.addTabTrigger} never became present within ${DEFAULTS.uiStateTimeoutMs / 1000}s)`);
   }
 
-  // 3. Keyboard ACTIVATION: Space on the Community nav switches the surface.
-  const community = await tabUntil(page, SHELL_MARKERS.navCommunity);
-  await pressSpace(page);
-  await sleep(1400);
-  const communityHeading = await page.evaluateValue(headingVisibleExpression(PRODUCT_MARKERS.communityHeading));
-  const communityCurrent = await page.evaluateValue(
-    `document.querySelector('[data-testid="${SHELL_MARKERS.navCommunity}"]')?.getAttribute("aria-current") ?? null`,
-  );
-  const spaceActivated = Boolean(communityHeading?.found && communityHeading?.visible) && communityCurrent === "page";
+  // 3. Keyboard ACTIVATION: Enter on the FILES launcher row opens a tab.
+  //    The launcher is opened with a positioning click on the add-tab
+  //    trigger (its keyboard path was proven in step 2); the launcher row
+  //    itself is then activated with Enter.
+  const launcherOpened = await clickSelector(page, SHELL_MARKERS.addTabTrigger);
+  let rowFocused = { present: false, method: "not-attempted" };
+  let tabAppeared = false;
+  let tabEvidence = null;
+  {
+    const deadline = Date.now() + DEFAULTS.uiStateTimeoutMs;
+    while (Date.now() < deadline) {
+      const state = await selectorState(page, `[${SHELL_MARKERS.launcherItemAttr}="files"]`);
+      if (state?.present && state?.visible) break;
+      await sleep(DEFAULTS.uiStatePollMs);
+    }
+  }
+  rowFocused = await page
+    .evaluateValue(`(() => {
+      const el = document.querySelector('[${SHELL_MARKERS.launcherItemAttr}="files"]');
+      if (!el) return { present: false, method: "not-found" };
+      el.focus();
+      return { present: true, method: "programmatic el.focus() on the real launcher row", focused: document.activeElement === el, label: (el.textContent ?? "").replace(/\\s+/g, " ").trim().slice(0, 60) };
+    })()`)
+    .catch(() => ({ present: false, method: "probe-failed" }));
+  evidence.push(`launcher opened via add-tab trigger: ${JSON.stringify(launcherOpened)}; files row focus: ${JSON.stringify(rowFocused)}`);
+  if (rowFocused?.present) {
+    await pressEnter(page);
+    const deadline = Date.now() + DEFAULTS.uiStateTimeoutMs;
+    while (Date.now() < deadline) {
+      tabEvidence = await page
+        .evaluateValue(`(() => {
+          const tabs = [...document.querySelectorAll("[${SHELL_MARKERS.tabIdAttr}]")];
+          return { count: tabs.length, labels: tabs.map((el) => (el.textContent ?? "").replace(/\\s+/g, " ").trim().slice(0, 40)).filter(Boolean) };
+        })()`)
+        .catch(() => null);
+      if (tabEvidence && tabEvidence.count > 0) {
+        tabAppeared = true;
+        break;
+      }
+      await sleep(DEFAULTS.uiStatePollMs);
+    }
+  }
   evidence.push(
-    `Space on the Community nav: focus reached=${community.reached} (after ${community.tabs} tabs); aria-current=${JSON.stringify(communityCurrent)}; community heading visible=${JSON.stringify(communityHeading?.visible ?? null)}`,
+    `Enter on the files launcher row: a side-pane tab appeared ([${SHELL_MARKERS.tabIdAttr}]) = ${tabAppeared} ${JSON.stringify(tabEvidence)}`,
   );
-  if (!spaceActivated) {
-    problems.push("Space does not activate the Community navigation (surface did not switch / aria-current did not move)");
+  if (!tabAppeared) {
+    problems.push(`Enter on the New Tab launcher row does not open a pane tab (no [${SHELL_MARKERS.tabIdAttr}] element appeared within ${DEFAULTS.uiStateTimeoutMs / 1000}s)`);
   }
 
-  await clickNav(page, SHELL_MARKERS.navStudio); // restore the default surface
   report.check(
     "a11y-keyboard-navigation",
-    "keyboard navigation: Tab reaches brand → nav buttons → the AI & Agents escape hatch in a sensible order; Enter and Space activate navigation",
+    "keyboard navigation: Tab reaches the real chrome controls (window controls, settings, side-pane toggle — order recorded as observed) and Enter activates the side pane toggle and a New Tab launcher row",
     problems.length === 0 ? "pass" : "fail",
     problems.length === 0
-      ? "the full top-bar navigation is keyboard-reachable in DOM order and activates with Enter/Space (aria-current tracks the active surface)"
+      ? "all chrome controls are keyboard-reachable within the bounded walk, Enter expands the side pane and Enter opens a real pane tab from the launcher"
       : problems.join("; "),
     evidence,
   );
 }
 
-/** The visible-focus check: the focused bar control must render a focus
+/** The visible-focus check: the focused chrome controls must render a focus
  * indicator (outline, box-shadow, or any focused-vs-blurred style change). */
 export async function visibleFocusCheck(report, page) {
   const probes = [];
-  for (const testid of [SHELL_MARKERS.navLab, SHELL_MARKERS.navWorkbench]) {
-    const reached = await tabUntil(page, testid);
-    const focused = await page.evaluateValue(`(() => {
-      const el = document.activeElement;
-      if (!el || el === document.body) return null;
-      const cs = getComputedStyle(el);
-      return {
-        testid: el.getAttribute("data-testid"),
-        matchesFocusVisible: el.matches(":focus-visible"),
-        outlineStyle: cs.outlineStyle,
-        outlineWidth: cs.outlineWidth,
-        outlineColor: cs.outlineColor,
-        boxShadow: cs.boxShadow,
-        borderColor: cs.borderColor,
-        backgroundColor: cs.backgroundColor,
-      };
-    })()`);
+  for (const testid of [SHELL_MARKERS.sidePaneToggle, "window-control-close"]) {
+    const focused = await focusByTestid(page, testid);
+    const styles = await page
+      .evaluateValue(`(() => {
+        const el = document.activeElement;
+        if (!el || el === document.body) return null;
+        const cs = getComputedStyle(el);
+        return {
+          testid: el.getAttribute("data-testid"),
+          matchesFocusVisible: el.matches(":focus-visible"),
+          outlineStyle: cs.outlineStyle,
+          outlineWidth: cs.outlineWidth,
+          outlineColor: cs.outlineColor,
+          boxShadow: cs.boxShadow,
+          borderColor: cs.borderColor,
+          backgroundColor: cs.backgroundColor,
+        };
+      })()`)
+      .catch(() => null);
     await page.evaluate(`document.activeElement && document.activeElement.blur()`).catch(() => undefined);
     await sleep(150);
-    const blurred = await page.evaluateValue(`(() => {
-      const el = document.querySelector('[data-testid="${testid}"]');
-      if (!el) return null;
-      const cs = getComputedStyle(el);
-      return { boxShadow: cs.boxShadow, borderColor: cs.borderColor, backgroundColor: cs.backgroundColor, borderWidth: cs.borderWidth };
-    })()`);
-    probes.push({ testid, reached: reached.reached, focused, blurred });
+    const blurred = await page
+      .evaluateValue(`(() => {
+        const el = document.querySelector('[data-testid="${testid}"]');
+        if (!el) return null;
+        const cs = getComputedStyle(el);
+        return { boxShadow: cs.boxShadow, borderColor: cs.borderColor, backgroundColor: cs.backgroundColor, borderWidth: cs.borderWidth };
+      })()`)
+      .catch(() => null);
+    probes.push({ testid, focused, styles, blurred });
     await sleep(150);
   }
   const problems = [];
   const evidence = probes.map((probe) => {
-    if (!probe.reached || !probe.focused) {
-      problems.push(`${probe.testid} could not be keyboard-focused`);
-      return `${probe.testid}: not focusable via Tab`;
+    if (!probe.focused?.present || !probe.styles) {
+      problems.push(`${probe.testid} could not be focused for the visible-focus probe`);
+      return `${probe.testid}: not focusable (${probe.focused?.method ?? "unavailable"})`;
     }
-    const outlineVisible = probe.focused.outlineStyle !== "none" && parseFloat(probe.focused.outlineWidth) > 0;
-    const shadowVisible = probe.focused.boxShadow !== "none";
+    const outlineVisible =
+      probe.styles.outlineStyle !== "none" && parseFloat(probe.styles.outlineWidth) > 0;
+    const shadowVisible = probe.styles.boxShadow !== "none";
     const styleChanged =
       probe.blurred != null &&
-      (probe.focused.boxShadow !== probe.blurred.boxShadow ||
-        probe.focused.borderColor !== probe.blurred.borderColor ||
-        probe.focused.backgroundColor !== probe.blurred.backgroundColor);
+      (probe.styles.boxShadow !== probe.blurred.boxShadow ||
+        probe.styles.borderColor !== probe.blurred.borderColor ||
+        probe.styles.backgroundColor !== probe.blurred.backgroundColor);
     const visible = outlineVisible || shadowVisible || styleChanged;
     if (!visible) {
       problems.push(
-        `${probe.testid} shows NO visible focus indicator when keyboard-focused (:focus-visible=${probe.focused.matchesFocusVisible}, outline=${probe.focused.outlineStyle} ${probe.focused.outlineWidth}, boxShadow=${probe.focused.boxShadow}, no focused-vs-blurred style change)`,
+        `${probe.testid} shows NO visible focus indicator when focused (:focus-visible=${probe.styles.matchesFocusVisible}, outline=${probe.styles.outlineStyle} ${probe.styles.outlineWidth}, boxShadow=${probe.styles.boxShadow}, no focused-vs-blurred style change)`,
       );
     }
     return (
-      `${probe.testid}: :focus-visible=${probe.focused.matchesFocusVisible}, outline=${probe.focused.outlineStyle} ${probe.focused.outlineWidth} ${probe.focused.outlineColor}, ` +
-      `boxShadow=${probe.focused.boxShadow}, focused-vs-blurred change=${styleChanged}`
+      `${probe.testid} (focused via ${probe.focused.method}): :focus-visible=${probe.styles.matchesFocusVisible}, outline=${probe.styles.outlineStyle} ${probe.styles.outlineWidth} ${probe.styles.outlineColor}, ` +
+      `boxShadow=${probe.styles.boxShadow}, focused-vs-blurred change=${styleChanged}`
     );
   });
-  await clickNav(page, SHELL_MARKERS.navStudio); // restore the default surface
   report.check(
     "a11y-visible-focus",
-    "visible focus: keyboard-focused top-bar controls render a focus indicator",
+    "visible focus: focused chrome controls (side pane toggle, window control) render a focus indicator",
     problems.length === 0 ? "pass" : "fail",
     problems.length === 0
-      ? "every probed bar control shows a visible focus indicator under keyboard focus"
+      ? "every probed chrome control shows a visible focus indicator under focus"
       : problems.join("; "),
     evidence,
   );
@@ -305,81 +398,24 @@ export async function accessibleNamesCheck(report, page) {
   if (!Array.isArray(named)) {
     report.check(
       "a11y-accessible-names",
-      "accessible names: every visible interactive element is named (aria-label / text / title)",
+      "accessible names: every visible interactive element is named (aria-label / aria-labelledby / text / title)",
       "fail",
       `the accessible-name probe failed: ${JSON.stringify(named)}`,
     );
     return;
   }
   const unnamed = named.filter((entry) => entry.source == null);
-  const navCurrent = await page.evaluateValue(
-    `document.querySelector('[data-testid="${SHELL_MARKERS.navStudio}"]')?.getAttribute("aria-current") ?? document.querySelector('[data-testid="${SHELL_MARKERS.navLab}"]')?.getAttribute("aria-current") ?? document.querySelector('[data-testid="${SHELL_MARKERS.navCommunity}"]')?.getAttribute("aria-current") ?? null`,
-  );
   const problems = [];
   if (unnamed.length > 0) {
     problems.push(`${unnamed.length} visible interactive element(s) have NO accessible name: ${unnamed.map((entry) => `${entry.tag}[${entry.testid ?? entry.label ?? "?"}]`).join(", ")}`);
   }
-  if (navCurrent == null) {
-    problems.push("no navigation button carries aria-current (the active workspace is not programmatically indicated)");
-  }
   report.check(
     "a11y-accessible-names",
-    "accessible names: every visible interactive element is named (aria-label / text / title); the active nav carries aria-current",
+    "accessible names: every visible interactive element is named (aria-label / aria-labelledby / text / title)",
     problems.length === 0 ? "pass" : "fail",
     problems.length === 0
-      ? `${named.length} visible interactive elements checked — all named; active nav aria-current=${JSON.stringify(navCurrent)}`
+      ? `${named.length} visible interactive elements checked — all named`
       : problems.join("; "),
     named.slice(0, 30).map((entry) => `${entry.tag}[${entry.testid ?? "?"}] "${entry.label}" — name via ${entry.source ?? "NONE"}`),
-  );
-}
-
-/** Per surface: an h1 exists and visible heading levels do not skip. */
-export async function headingHierarchyCheck(report, page) {
-  const surfaces = [
-    { testid: SHELL_MARKERS.navStudio, name: "Game Studio" },
-    { testid: SHELL_MARKERS.navLab, name: "Lab" },
-    { testid: SHELL_MARKERS.navCommunity, name: "Community" },
-  ];
-  const problems = [];
-  const evidence = [];
-  for (const surface of surfaces) {
-    await clickNav(page, surface.testid);
-    await sleep(1200);
-    const headings = await page.evaluateValue(`(() => {
-      return [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")].map((el) => {
-        const r = el.getBoundingClientRect();
-        const cs = getComputedStyle(el);
-        const visible = cs.display !== "none" && cs.visibility !== "hidden" && r.width > 0.5 && r.height > 0.5;
-        return { level: Number(el.tagName.slice(1)), text: (el.textContent ?? "").trim().slice(0, 60), visible };
-      }).filter((entry) => entry.visible);
-    })()`);
-    if (!Array.isArray(headings)) {
-      problems.push(`${surface.name}: heading probe failed (${JSON.stringify(headings)})`);
-      continue;
-    }
-    const levels = headings.map((entry) => entry.level);
-    evidence.push(`${surface.name}: visible headings ${JSON.stringify(headings.map((entry) => `h${entry.level} ${entry.text.slice(0, 30)}`))}`);
-    if (!levels.includes(1)) {
-      problems.push(`${surface.name}: NO visible h1 (observed levels: ${JSON.stringify(levels)})`);
-      continue;
-    }
-    if (levels[0] !== 1) {
-      problems.push(`${surface.name}: the first visible heading is h${levels[0]}, not the surface h1`);
-    }
-    for (let i = 1; i < levels.length; i += 1) {
-      if (levels[i] > levels[i - 1] + 1) {
-        problems.push(`${surface.name}: heading level skips h${levels[i - 1]} → h${levels[i]} ("${headings[i].text}")`);
-      }
-    }
-  }
-  await clickNav(page, SHELL_MARKERS.navStudio); // restore the default surface
-  report.check(
-    "a11y-heading-hierarchy",
-    "heading hierarchy: every surface has its h1 and visible heading levels never skip",
-    problems.length === 0 ? "pass" : "fail",
-    problems.length === 0
-      ? "Studio, Lab and Community each render an h1-first heading structure with no skipped levels"
-      : problems.join("; "),
-    evidence,
   );
 }

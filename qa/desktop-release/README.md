@@ -2,12 +2,18 @@
 
 Ported from the proven PlayLiquid reference implementation (work orders RW-003
 packaged-app smoke, UX-003 enforceable UX acceptance, PLX-REL-001 cross-platform
-installable delivery — the work-item specs live in the reference repository).
-Module manifest: `src/module.ts` (`qa-desktop-release`). The **Windows harness**
-(below) verifies the NSIS installer + portable zip at the process/file/registry
-level. Everything product-specific (identity values, shell markers, viewports,
-timeouts) lives in `src/harness/config.mjs` so the TL can re-run the same
-harness on the re-branded artifact without code changes.
+installable delivery — the work-item specs live in the reference repository),
+then **adapted to the unified shell** (TL handoff §2): this product deliberately
+ships NO separate GameOS product shell — the application is the unified
+PlayLiquid-branded ZCode workbench, and PlayLiquid Console is a **side-pane New
+Tab entry**, not a Studio/Lab/Community workspace. The smoke battery therefore
+drives the REAL golden path (welcome → auth skip → 3-step onboarding → workspace
+composer → five-option New Tab launcher → PlayLiquid Console). Module manifest:
+`src/module.ts` (`qa-desktop-release`). The **Windows harness** (below) verifies
+the NSIS installer + portable zip at the process/file/registry level. Everything
+product-specific (identity values, journey markers, viewports, timeouts) lives
+in `src/harness/config.mjs` so the TL can re-run the same harness on the
+re-branded artifact without code changes.
 
 This harness tests the **PACKAGED Linux application** — the AppImage (and the
 .deb, metadata-level) produced by the release workflow — never a dev server,
@@ -64,8 +70,8 @@ Key options (all also settable via `QA_RELEASE_ARTIFACT` / `QA_RELEASE_DEB` /
 | `--out` | evidence directory (default `evidence/run-<id>`) |
 | `--cdp-port` | main-run CDP port, default **9333** (never 9222 — collides with resident stacks); the offline scenario uses `cdp-port + 1` |
 | `--display` | Xvfb display, default `:89` (auto-falls back through `:80`-`:89`) |
-| `--expected-title` | override the expected window title (default `PlayLiquid GameOS`) |
-| `--baseline-expectations` | annotate the known pre-A/B failures (see below) |
+| `--expected-title` | override the expected window title (default `PlayLiquid`) |
+| `--baseline-expectations` | annotate expected baseline failures — a documented compatibility no-op in the unified-shell battery (the list is empty; see below) |
 | `--skip-offline` | skip the dead-proxy offline scenario |
 
 Exit code: `0` all checks pass (or only *annotated expected* failures with
@@ -76,38 +82,57 @@ and excludes exactly those IDs from the exit-code calculation.
 
 ## What is checked
 
+The **unified-shell journey** (TL handoff §2 — no separate GameOS workspace;
+Console is a side-pane tab) drives the packaged app through the same controls a
+first-run user touches. Every journey step polls generously (~60 s per stage;
+fresh onboarding legitimately takes ~20 s) and records honest evidence.
+
 | id | check |
 | --- | --- |
 | `artifact-checksum` | artifact sha256 vs `SHA256SUMS` |
 | `startup` | packaged app starts under Xvfb (CDP endpoint + main window target + settled DOM) |
 | `packaged-independence` | main window loads `file://` (packaged renderer); no dev env vars in the child environment; launched from a neutral cwd |
 | `window-title-captured` | the actual window/document title, recorded |
-| `product-identity-title` | title carries the PlayLiquid GameOS identity |
-| `no-zcode-primary-branding` | ZCode is not the primary UI identity — title, headings, headers AND the shell top bar must carry NO ZCode text (the frozen escape-hatch label is `AI & Agents`) |
-| `workbench-escape-hatch-label` | `[data-testid=gameos-nav-workbench]` is present, visible, labeled exactly **`AI & Agents`** (frozen shell vocabulary), with an honest title/hint, as a secondary affordance (no `aria-current="page"`) |
-| `product-shell-renders` | PlayLiquid product shell (Studio/Lab/Community) is the default surface |
-| `studio-surface` / `lab-surface` / `community-surface` | the three product surfaces render (frozen marker vocabulary from the reference implementation; the surfaces themselves arrive with the PlayLiquid Console integration) |
-| `first-run-empty-state` | clean profile shows the no-data state (e.g. `no package records loaded`) |
-| `gameos-empty-state-contract` | the default first-run surface renders the frozen empty-state vocabulary — a visible `[data-testid=gameos-empty-state]` container offering a REAL next step `[data-testid=gameos-empty-next-step]` with an enabled interactive control (no dead controls, no fake success) |
-| `product-navigation` | clicking the Studio / Lab / Community nav actually switches to the corresponding surface |
-| `studio-real-operation` | representative REAL operation: the Studio `Refresh snapshot` control pulls an authoritative snapshot through the production-wired port without an E11 failure banner |
-| `lab-real-operation` | the Lab `Refresh read models` control pulls its authoritative read model through the production-wired data port (no E11 banner) |
-| `community-real-operation` | the Community `Refresh read models` control pulls its authoritative read model through the production-wired data port (no E11 banner) |
-| `lab-command-outcome-visible` | dispatching the Lab request-search typed intent through its real control renders its typed outcome in the append-only command log — accepted OR a typed refusal; silence/fake success fails |
-| `community-lifecycle-honest-gate` | the unavailable maintainer workflow renders a truthful limitation state — either no advance controls + visible guidance, or controls whose dispatch renders a typed refusal; fake powers or a dead surface fail |
+| `product-identity-title` | title carries the PlayLiquid identity (`document.title` is `PlayLiquid`) |
+| `no-zcode-primary-branding` | ZCode is not the primary UI identity — title, headings and app headers carry NO ZCode text |
+| `journey-welcome-branding` | boot reaches the PlayLiquid welcome/login gate: `document.title` `PlayLiquid`, "Welcome to PlayLiquid", "Connect your account to start using PlayLiquid" and the "Use API key" entry visible |
+| `journey-auth-skip` | "Use API key" opens the credential dialog (Continue / Cancel / Skip for now); "Skip for now" advances past the welcome gate — no credentials invented, the welcome surface is honestly gone |
+| `journey-onboarding-walk` | the 3-step first-run wizard advances ("What do you do?" → "Software / Data / AI" → Next; "Choose your UI mode" → "Coding mode" → Next; "Personalize your work assistant" → Skip) — completion proven by REACHING the workspace composer |
+| `journey-workspace-composer` | the New Task workspace renders the composer placeholder ("Ask PlayLiquid anything, @ to add context, / for commands or capabilities"), the "Select project" trigger and the primary sidebar labels (New task / Automations / Plugin Marketplace; Tasks / Projects recorded, not required) |
+| `journey-newtab-five-options` | `[data-testid=side-pane-toggle]` (aria-label "Expand side pane") expands the side pane; `[data-side-pane-add-tab-trigger]` opens the New Tab launcher; the five BUILT-IN entries are present in canonical order: `files`, `browser`, `terminal`, `review`, `playliquid-console` (optional `sites` / `developer-tools` rows recorded, never required) |
+| `journey-console-opens` | clicking the `playliquid-console` launcher row opens the Console tab: header "PlayLiquid Console" (with the droplet), workbench text "World projects", live status "registry open" (badge "services live" recorded as evidence) |
 | `clean-profile-startup` | app boots from empty HOME/XDG dirs and creates its own first-run state there |
 | `viewports-evidence` | screenshots at 390×844 and 1280×800 (see honest note below) |
-| `geometry-1280x800` | computed bounding boxes at the real 1280×800 OS window — every bar element (brand, three nav buttons, escape hatch, window controls) present, visible, non-zero, pairwise NON-overlapping, unclipped by the viewport, no horizontal overflow (document + bar scrollWidth), labels not internally truncated; navigation must be directly visible or reachable through the optional `[data-testid=gameos-shell-overflow]` control |
+| `geometry-1280x800` | computed bounding boxes at the real 1280×800 OS window — every required workbench chrome control (the three window controls `[data-testid=window-control-*]`, the Settings control `[data-testid=task-settings-button]`, the side-pane toggle) present, visible, non-zero, pairwise NON-overlapping (the window-controls container excluded — it contains its controls), unclipped by the viewport, no horizontal overflow (document + container scrollWidth), labels not internally truncated |
 | `geometry-480-window` | the same geometry contract at the ACTUAL 480px minimum OS window (`MIN_DESKTOP_WINDOW_WIDTH`, reached via `Browser.setWindowBounds` when available, `window.resizeTo` fallback) |
 | `geometry-390x844-emulated` | the same geometry contract at the 390×844 emulated viewport (CDP `Emulation.setDeviceMetricsOverride`) |
-| `a11y-keyboard-navigation` | Tab reaches the bar navigation in a sensible order (brand first when focusable, then Studio → Lab → Community → escape hatch) and **Enter/Space activate** navigation (surface switches, `aria-current="page"` moves) — driven via CDP `Input.dispatchKeyEvent` |
-| `a11y-visible-focus` | keyboard-focused bar controls render a visible focus indicator (computed outline/box-shadow, or any focused-vs-blurred style change) |
-| `a11y-accessible-names` | every visible interactive element (bar + active surface) has an accessible name (aria-label / aria-labelledby / text / title); the active nav carries `aria-current` |
-| `a11y-heading-hierarchy` | every surface has its h1 and visible heading levels never skip |
+| `a11y-keyboard-navigation` | Tab reaches the REAL chrome controls (window controls, Settings, side-pane toggle) within a bounded walk (max 40 tabs — never loops on nonexistent selectors); the observed focus order is recorded, not asserted against an invented expectation; **Enter activates**: Enter on the side-pane toggle expands the pane (the add-tab trigger becomes present), Enter on the `files` launcher row opens a real pane tab — driven via CDP `Input.dispatchKeyEvent` |
+| `a11y-visible-focus` | keyboard-focused chrome controls (side-pane toggle, window control) render a visible focus indicator (computed outline/box-shadow, or any focused-vs-blurred style change) |
+| `a11y-accessible-names` | every visible interactive element on the active surface has an accessible name (aria-label / aria-labelledby / text / title) |
 | `packaging-identity` | desktop entry / .deb package metadata serves the PlayLiquid identity |
 | `error-handling-offline-render` / `error-handling-offline-stability` | with all renderer network egress dead (`--proxy-server` to a closed port), the app still renders, stays alive and responsive — visible degradation, not breakage |
 | `clean-shutdown` / `clean-shutdown-offline` | CDP `Browser.close` → exit code 0 within bounds, no orphan processes (both scenarios) |
 | `console-evidence-recorded` | renderer console entries captured as evidence |
+
+Every battery also runs under a **crash guard** (`journey-battery` /
+`geometry-battery` / `a11y-battery`): a battery that crashes — e.g. the page
+dying mid-run, the fatal `page: already closed` lesson from the pre-adaptation
+CI run — is recorded as an honest failure and the run continues so the report
+and evidence are still written.
+
+### Checks deleted with the unified-shell adaptation
+
+The reference repository's battery asserted a standalone "GameOS product shell"
+(Studio/Lab/Community nav, `gameos-nav-*` testids) that this product
+**deliberately does not have**. Those checks were deleted — never faked:
+
+| deleted check | why |
+| --- | --- |
+| `workbench-escape-hatch-label` | asserted `[data-testid=gameos-nav-workbench]` ("AI & Agents" escape hatch) — no GameOS nav exists in the unified shell |
+| `product-shell-renders`, `studio-surface` / `lab-surface` / `community-surface` | asserted the Studio/Lab/Community product shell as the default surface — the unified workbench replaces it |
+| `product-navigation`, `studio-real-operation`, `lab-real-operation`, `community-real-operation`, `lab-command-outcome-visible`, `community-lifecycle-honest-gate` | drove Studio/Lab/Community surface operations that no longer exist; the journey battery now drives the REAL golden path instead |
+| `first-run-empty-state`, `gameos-empty-state-contract` | asserted the GameOS first-run empty-state container — the real first-run state is the welcome gate + onboarding, which `journey-welcome-branding` / `journey-auth-skip` / `journey-onboarding-walk` now cover |
+| `a11y-heading-hierarchy` | walked the Studio/Lab/Community surface headings (`studioHeading` / `labHeading` / `communityHeading` markers) that no longer exist |
 
 ## Windows smoke harness (PLX-REL-001)
 
@@ -234,21 +259,17 @@ run against OUR artifacts.
   button activation for Enter only fires on a non-raw keydown). `:focus-visible`
   is matched under keyboard focus per the browser's own heuristic; the pass
   criterion is the COMPUTED indicator, not the pseudo-class alone.
-- **Baseline honesty (our transformation)**: on the pre-A+B baseline
-  (ZCode v3.17.2 branding, commit `a9fe401e`) the frozen-contract checks FAIL
-  and are annotated via `--baseline-expectations`
-  (`BASELINE_EXPECTED_FAILURES` in `src/harness/config.mjs`):
-  `no-zcode-primary-branding` + `workbench-escape-hatch-label` (the inherited
-  `ZCode workbench` label is still shipped; frozen new label `AI & Agents`),
-  `gameos-empty-state-contract` (not implemented yet), the three
-  `geometry-*` checks (no `gameos-shell-brand` marker yet + the known
-  480px/390px overflow defect), `a11y-visible-focus` (no focus styles) and
-  `a11y-heading-hierarchy` (h1 → h3 panel skips). The product-shell surface
-  markers (Studio/Lab/Community vocabulary in `config.mjs`) are the frozen
-  contract from the reference implementation — they are expected to pass only
-  after the PlayLiquid Console (Worker B) and shell branding (Worker A) land;
-  the TL re-runs this harness WITHOUT the flag after that integration: the
-  same checks must then be all-green.
+- **Baseline honesty (unified-shell adaptation)**: the marker vocabulary now
+  describes the REAL shipped product (transformation main), so the smoke
+  battery asserts behavior that already exists in the packaged artifact and
+  `BASELINE_EXPECTED_FAILURES` in `src/harness/config.mjs` is **EMPTY** — the
+  `--baseline-expectations` flag remains functional (it annotates exactly the
+  ids listed there and excludes only those from the exit-code calculation) but
+  is a documented compatibility no-op. The historical pre-A/B baseline
+  expectations (`no-zcode-primary-branding`, the GameOS shell contract checks,
+  the 480px/390px overflow defect) were resolved by the transformation or
+  deleted with the checks themselves (see "Checks deleted with the
+  unified-shell adaptation" above).
 
 Memory discipline: the harness never uses broad `pkill` — it kills only the
 process groups it started (tracked PIDs + a per-run unique token), runs one

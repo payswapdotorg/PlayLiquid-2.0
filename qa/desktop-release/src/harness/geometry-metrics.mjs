@@ -1,11 +1,20 @@
 /**
- * UX-003 harness — pure geometry METRICS (extracted from
- * checks-geometry.mjs unchanged; max-file-lines gate): the single-round-trip
- * bar measurement expression and the violation analysis (overlap /
- * clipping / overflow / truncation / reachability math).
+ * UX-003 harness — pure geometry METRICS for the UNIFIED workbench chrome
+ * (extracted pattern from the reference shell battery; max-file-lines gate):
+ * the single-round-trip measurement expression and the violation analysis
+ * (overlap / clipping / overflow / truncation math).
+ *
+ * Unified-shell adaptation: the required set is the REAL always-present
+ * chrome of the PlayLiquid workbench — the three platform window controls
+ * (by their stable testids), the Settings control and the side-pane toggle —
+ * instead of the reference repo's gameos-shell bar (brand / Studio / Lab /
+ * Community / AI & Agents), which does not exist in this product. When the
+ * side pane is open the window controls + toggle render inside the pane
+ * header ([data-workspace-side-frame]); when closed, in the workspace header
+ * — both states are measured as-is, and duplicate render counts are
+ * recorded honestly (only the first instance is measured).
  */
 
-/** One combined measurement of every bar element (single round trip). */
 import { SHELL_MARKERS } from "./config.mjs";
 
 /** Tolerances (CSS px) for sub-pixel rounding in box math. */
@@ -13,17 +22,16 @@ const PX = 0.5;
 /** Minimum overlap area (px^2) that counts as a real overlap. */
 const OVERLAP_AREA = 1.0;
 
-/** The bar elements whose geometry the check asserts (required set). */
+/** The chrome elements whose geometry the check asserts (required set). */
 const REQUIRED = [
-  { key: "brand", label: `brand cluster [${SHELL_MARKERS.brand}]` },
-  { key: "navStudio", label: `Game Studio nav [${SHELL_MARKERS.navStudio}]` },
-  { key: "navLab", label: `Lab nav [${SHELL_MARKERS.navLab}]` },
-  { key: "navCommunity", label: `Community nav [${SHELL_MARKERS.navCommunity}]` },
-  { key: "workbench", label: `AI & Agents escape hatch [${SHELL_MARKERS.navWorkbench}]` },
+  { key: "windowControlMinimize", label: `Minimize window control [window-control-minimize]` },
+  { key: "windowControlMaximize", label: `Maximize/restore window control [window-control-maximize]` },
+  { key: "windowControlClose", label: `Close window control [window-control-close]` },
+  { key: "taskSettings", label: `Settings control [${SHELL_MARKERS.taskSettingsButton}]` },
+  { key: "sidePaneToggle", label: `Side pane toggle [${SHELL_MARKERS.sidePaneToggle}]` },
 ];
 
-
-export function barGeometryExpression() {
+export function chromeGeometryExpression() {
   const measure = `((el) => {
       if (!el) return { found: false };
       const r = el.getBoundingClientRect();
@@ -43,38 +51,28 @@ export function barGeometryExpression() {
       };
     })`;
   const selectors = {
-    bar: `[data-testid="${SHELL_MARKERS.bar}"]`,
-    brand: `[data-testid="${SHELL_MARKERS.brand}"]`,
-    navStudio: `[data-testid="${SHELL_MARKERS.navStudio}"]`,
-    navLab: `[data-testid="${SHELL_MARKERS.navLab}"]`,
-    navCommunity: `[data-testid="${SHELL_MARKERS.navCommunity}"]`,
-    workbench: `[data-testid="${SHELL_MARKERS.navWorkbench}"]`,
-    workspaceHost: `[data-testid="${SHELL_MARKERS.workspaceHost}"]`,
-    overflowControl: `[data-testid="${SHELL_MARKERS.shellOverflow}"]`,
+    windowControlsContainer: `[data-testid="${SHELL_MARKERS.windowControlsContainer}"]`,
+    windowControlMinimize: `[data-testid="window-control-minimize"]`,
+    windowControlMaximize: `[data-testid="window-control-maximize"]`,
+    windowControlClose: `[data-testid="window-control-close"]`,
+    taskSettings: `[data-testid="${SHELL_MARKERS.taskSettingsButton}"]`,
+    sidePaneToggle: `[data-testid="${SHELL_MARKERS.sidePaneToggle}"]`,
   };
-  const windowControls = {};
-  for (const label of SHELL_MARKERS.windowControlLabels) {
-    // single-quoted attribute value inside the double-quoted selector string
-    windowControls[label] = `bar && bar.querySelector("button[aria-label='${label}']")`;
-  }
   return `(() => {
     const measure = ${measure};
-    const bar = document.querySelector(${JSON.stringify(selectors.bar)});
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const counts = {};
+    for (const [key, selector] of ${JSON.stringify(Object.entries(selectors))}) {
+      counts[key] = document.querySelectorAll(selector).length;
+    }
     return {
       viewport: [vw, vh],
       documentScrollWidth: document.documentElement.scrollWidth,
-      bar: bar ? measure(bar) : { found: false },
+      counts,
       ${Object.entries(selectors)
-        .filter(([key]) => key !== "bar")
         .map(([key, selector]) => `${key}: measure(document.querySelector(${JSON.stringify(selector)})),`)
         .join("\n      ")}
-      windowControls: {
-        ${Object.entries(windowControls)
-          .map(([label, expr]) => `${JSON.stringify(label)}: measure(${expr}),`)
-          .join("\n        ")}
-      },
     };
   })()`;
 }
@@ -103,113 +101,86 @@ export function rectSummary(entry) {
     (entry.scrollWidth > entry.clientWidth + 1 ? ` [internal clip: scrollWidth ${entry.scrollWidth} > ${entry.clientWidth}]` : "");
 }
 
-/** Analyze one measurement pass against the geometry contract. */
+/** Analyze one measurement pass against the chrome geometry contract. */
 export function analyzeGeometry(measured) {
   const [vw, vh] = measured.viewport ?? [0, 0];
   const problems = [];
   const evidence = [];
 
-  if (!measured.bar?.found) {
-    problems.push(`the shell top bar [${SHELL_MARKERS.bar}] is not rendered — geometry cannot be asserted`);
-    return { problems, evidence };
-  }
-  if (!elementVisible(measured.bar)) {
-    problems.push(`the shell top bar is not visible (${rectSummary(measured.bar)})`);
-  }
-
-  // 1. Required elements: present, visible, non-zero.
-  const named = {};
+  // 1. Required chrome controls: present, visible, non-zero.
   for (const item of REQUIRED) {
     const entry = measured[item.key];
-    named[item.key] = entry;
+    const count = measured.counts?.[item.key];
     if (!entry?.found) {
-      problems.push(`missing required bar element: ${item.label}`);
+      problems.push(`missing required chrome control: ${item.label}`);
       continue;
     }
     if (!elementVisible(entry)) {
       problems.push(`${item.label} is not visible / has a zero box (${rectSummary(entry)})`);
     }
-  }
-
-  // Window controls: minimize + (maximize|restore) + close, all visible.
-  const controls = measured.windowControls ?? {};
-  const minimize = controls["Minimize window"];
-  const maximize = controls["Maximize window"] ?? controls["Restore window"];
-  const close = controls["Close window"];
-  for (const [name, entry] of [["Minimize window", minimize], ["Maximize/Restore window", maximize], ["Close window", close]]) {
-    if (!entry?.found) {
-      problems.push(`missing window control: ${name}`);
-    } else if (!elementVisible(entry)) {
-      problems.push(`window control ${name} is not visible / has a zero box (${rectSummary(entry)})`);
+    if (count > 1) {
+      // Honest observation: e.g. the settings control has more than one
+      // conditional render site; only the first instance is measured.
+      evidence.push(`${item.label}: ${count} instances rendered — the first is measured`);
     }
   }
 
-  // 2. Clipping: fully inside the viewport.
-  const clipTargets = [
-    ...REQUIRED.map((item) => ({ label: item.label, entry: measured[item.key] })),
-    { label: "Minimize window control", entry: minimize },
-    { label: "Maximize/Restore window control", entry: maximize },
-    { label: "Close window control", entry: close },
-  ];
-  for (const target of clipTargets) {
-    if (target.entry?.found && elementVisible(target.entry) && elementClipped(target.entry, vw, vh)) {
-      problems.push(`${target.label} is clipped by the viewport edges (${rectSummary(target.entry)} vs viewport ${vw}x${vh})`);
+  // The window-controls container: recorded (presence + own overflow), but
+  // excluded from pairwise overlap — it CONTAINS the three window controls,
+  // so parent/child boxes legitimately intersect.
+  const container = measured.windowControlsContainer;
+  if (!container?.found) {
+    problems.push(`the window-controls container [${SHELL_MARKERS.windowControlsContainer}] is not rendered`);
+  } else if (!elementVisible(container)) {
+    problems.push(`the window-controls container is not visible (${rectSummary(container)})`);
+  }
+
+  // 2. Clipping: required controls fully inside the viewport.
+  for (const item of REQUIRED) {
+    const entry = measured[item.key];
+    if (entry?.found && elementVisible(entry) && elementClipped(entry, vw, vh)) {
+      problems.push(`${item.label} is clipped by the viewport edges (${rectSummary(entry)} vs viewport ${vw}x${vh})`);
     }
   }
 
-  // 3. Pairwise overlap among all visible bar elements.
-  const overlapSet = [
-    { label: "brand cluster", entry: measured.brand },
-    { label: "Game Studio nav", entry: measured.navStudio },
-    { label: "Lab nav", entry: measured.navLab },
-    { label: "Community nav", entry: measured.navCommunity },
-    { label: "AI & Agents escape hatch", entry: measured.workbench },
-    { label: "overflow control", entry: measured.overflowControl },
-    ...Object.entries(controls).map(([label, entry]) => ({ label: `${label} control`, entry })),
-  ].filter((item) => elementVisible(item.entry));
+  // 3. Pairwise overlap among the required controls (siblings across the
+  //    header, pane header and sidebar — none may cover another).
+  const overlapSet = REQUIRED.filter((item) => elementVisible(measured[item.key]));
   for (let i = 0; i < overlapSet.length; i += 1) {
     for (let j = i + 1; j < overlapSet.length; j += 1) {
-      const area = overlapArea(overlapSet[i].entry, overlapSet[j].entry);
+      const area = overlapArea(measured[overlapSet[i].key], measured[overlapSet[j].key]);
       if (area > OVERLAP_AREA) {
         problems.push(
           `${overlapSet[i].label} overlaps ${overlapSet[j].label} by ${Math.round(area)}px^2 ` +
-            `(${rectSummary(overlapSet[i].entry)} vs ${rectSummary(overlapSet[j].entry)})`,
+            `(${rectSummary(measured[overlapSet[i].key])} vs ${rectSummary(measured[overlapSet[j].key])})`,
         );
       }
     }
   }
 
-  // 4. Horizontal overflow: document level AND bar level (element check).
+  // 4. Horizontal overflow: document level AND container level.
   const documentOverflow = (measured.documentScrollWidth ?? 0) > vw + 1;
-  const barOverflow = measured.bar.scrollWidth > measured.bar.clientWidth + 1;
   if (documentOverflow) {
     problems.push(`document horizontal overflow: scrollWidth ${measured.documentScrollWidth} > viewport ${vw}`);
   }
-  if (barOverflow) {
-    problems.push(`top bar horizontal overflow: bar scrollWidth ${measured.bar.scrollWidth} > clientWidth ${measured.bar.clientWidth} (content is cut off)`);
+  if (container?.found && container.scrollWidth > container.clientWidth + 1) {
+    problems.push(`window-controls container horizontal overflow: scrollWidth ${container.scrollWidth} > clientWidth ${container.clientWidth}`);
   }
 
-  // 5. Interactive-control labels must not be internally truncated.
-  for (const target of [
-    { label: "Game Studio nav", entry: measured.navStudio },
-    { label: "Lab nav", entry: measured.navLab },
-    { label: "Community nav", entry: measured.navCommunity },
-    { label: "AI & Agents escape hatch", entry: measured.workbench },
-  ]) {
-    if (target.entry?.found && target.entry.scrollWidth > target.entry.clientWidth + 1) {
-      problems.push(`${target.label} label is truncated inside its box (scrollWidth ${target.entry.scrollWidth} > ${target.entry.clientWidth})`);
+  // 5. Control labels must not be internally truncated.
+  for (const item of REQUIRED) {
+    const entry = measured[item.key];
+    if (entry?.found && entry.scrollWidth > entry.clientWidth + 1) {
+      problems.push(`${item.label} label is truncated inside its box (scrollWidth ${entry.scrollWidth} > ${entry.clientWidth})`);
     }
   }
 
-  evidence.push(`viewport: ${vw}x${vh}; document scrollWidth ${measured.documentScrollWidth}; bar ${rectSummary(measured.bar)}`);
+  evidence.push(`viewport: ${vw}x${vh}; document scrollWidth ${measured.documentScrollWidth}`);
   for (const item of REQUIRED) {
-    evidence.push(`${item.label}: ${rectSummary(measured[item.key])}`);
-  }
-  for (const [label, entry] of Object.entries(controls)) {
-    evidence.push(`${label} control: ${rectSummary(entry)}`);
+    evidence.push(`${item.label} (aria-label ${JSON.stringify(measured[item.key]?.label ?? null)}): ${rectSummary(measured[item.key])}`);
   }
   evidence.push(
-    `overflow control [${SHELL_MARKERS.shellOverflow}]: ${measured.overflowControl?.found ? rectSummary(measured.overflowControl) : "not rendered (optional)"}`,
+    `window-controls container [${SHELL_MARKERS.windowControlsContainer}]: ${container?.found ? rectSummary(container) : "(absent)"}`,
   );
   return { problems, evidence };
 }

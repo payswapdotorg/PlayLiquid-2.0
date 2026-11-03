@@ -28,15 +28,11 @@ import {
   cleanProfileCheck,
   identityChecks,
   markerProbe,
-  navigationCheck,
-  realOperationCheck,
-  shellChecks,
   shellMarkersPresent,
   viewportChecks,
 } from "./checks.mjs";
-import { emptyStateContractCheck, workbenchEscapeCheck } from "./checks-contract.mjs";
 import { geometryChecks } from "./checks-geometry.mjs";
-import { accessibleNamesCheck, headingHierarchyCheck, keyboardNavigationCheck, visibleFocusCheck } from "./checks-a11y.mjs";
+import { accessibleNamesCheck, keyboardNavigationCheck, visibleFocusCheck } from "./checks-a11y.mjs";
 import { journeyChecks } from "./checks-journey.mjs";
 import { offlineScenario } from "./checks-offline.mjs";
 
@@ -44,8 +40,10 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 import { distroName, tail } from "./run-helpers.mjs";
 import { runAppRun, shutdownApp } from "./run-lifecycle.mjs";
 
-/** Wait (bounded, generous) for the product shell after DOM settle. The
- * packaged app's first-run preparation ("Finishing startup" — agent-runtime
+/** Wait (bounded, generous) for the first product surface after DOM settle.
+ * In the unified shell that surface is the first-run welcome/login gate — or,
+ * defensively (e.g. a pre-authenticated profile), the workspace composer.
+ * The packaged app's first-run preparation ("Finishing startup" — agent-runtime
  * and search-tool staging) can outlast the DOM settle: the loading screen's
  * DOM is stable, waitForRender returns early, and a fixed-moment probe races
  * the preparation (observed 60–120 s on cold CI runners — PLX-REL-001
@@ -62,11 +60,26 @@ async function waitForProductShell(page, log) {
     probe = await markerProbe(page);
   }
   if (shellMarkersPresent(probe)) {
-    log(`product shell present — first-run preparation finished within the ${DEFAULTS.shellReadyTimeoutMs / 1000}s window`);
+    log(`product surface present (welcome gate or composer) — first-run preparation finished within the ${DEFAULTS.shellReadyTimeoutMs / 1000}s window`);
   } else {
-    log(`product shell markers not present after ${DEFAULTS.shellReadyTimeoutMs / 1000}s — probing what is rendered; the checks will record it honestly`);
+    log(`product surface markers not present after ${DEFAULTS.shellReadyTimeoutMs / 1000}s — probing what is rendered; the checks will record it honestly`);
   }
   return probe;
+}
+
+/** Run one check battery with a crash guard: a battery that CRASHES (e.g.
+ * the page dying mid-battery — the fatal `page: already closed` lesson from
+ * the pre-adaptation CI run) is recorded as an honest failure and the run
+ * continues so the report and evidence are still written. Individual checks
+ * inside each battery keep recording their own observed outcomes. */
+async function guarded(report, id, title, fn) {
+  try {
+    await fn();
+  } catch (error) {
+    report.check(id, title, "fail", `battery crashed before completing: ${String(error?.message ?? error)}`, [
+      String(error?.stack ?? error).slice(0, 800),
+    ]);
+  }
 }
 
 export async function main(argv) {
@@ -151,21 +164,18 @@ export async function main(argv) {
           `child env keys: ${Object.keys(childEnv(run.profileDirs, xvfb.display)).sort().join(", ")}`,
         ],
       );
-      // PLX-REL-001: identity/shell checks run on the settled product shell,
-      // not the transient loading screen (see waitForProductShell).
+      // PLX-REL-001: identity checks run on the settled first product surface
+      // (the welcome/login gate), not the transient loading screen (see
+      // waitForProductShell).
       const probe = await waitForProductShell(run.page, log);
       identityChecks(report, probe, options);
-      shellChecks(report, probe);
-      // UX-003: the frozen shell + first-run contracts, asserted on the
-      // DEFAULT surface before any navigation moves it.
-      await workbenchEscapeCheck(report, run.page);
-      await emptyStateContractCheck(report, run.page);
-      await realOperationCheck(report, run.page);
-      await navigationCheck(report, run.page);
-      // UX-003: journey smoke through the production-wired ports (Lab +
-      // Community real read-model operations, typed-outcome and honest-
-      // limitation states).
-      await journeyChecks(report, run.page);
+      // The unified-shell golden path: welcome → auth skip → onboarding →
+      // workspace composer → five-option New Tab launcher → PlayLiquid
+      // Console (checks-journey.mjs). It advances the app's real first-run
+      // state, so every later battery runs on the workspace surface.
+      await guarded(report, "journey-battery", "journey battery (unified-shell golden path) ran to completion", () =>
+        journeyChecks(report, run.page),
+      );
       cleanProfileCheck(report, run.profileDirs, run.before, fs.readdirSync(run.profileDirs.xdgConfig));
       try {
         await viewportChecks(report, run.page, outDir);
@@ -179,19 +189,23 @@ export async function main(argv) {
       }
       // UX-003: geometry enforcement at the three mandated widths (the real
       // 1280x800 window, the actual 480px minimum OS window, the 390x844
-      // emulated viewport) — leaves the window restored at 1280x800.
-      await geometryChecks(report, {
-        browser: run.browser,
-        page: run.page,
-        targetId: run.target?.id,
-        outDir,
+      // emulated viewport) on the unified workbench chrome — leaves the
+      // window restored at 1280x800.
+      await guarded(report, "geometry-battery", "geometry battery (unified workbench chrome) ran to completion", () =>
+        geometryChecks(report, {
+          browser: run.browser,
+          page: run.page,
+          targetId: run.target?.id,
+          outDir,
+        }),
+      );
+      // UX-003: accessibility battery (keyboard navigation + activation on
+      // the real chrome controls, visible focus, accessible names).
+      await guarded(report, "a11y-battery", "accessibility battery ran to completion", async () => {
+        await keyboardNavigationCheck(report, run.page);
+        await visibleFocusCheck(report, run.page);
+        await accessibleNamesCheck(report, run.page);
       });
-      // UX-003: accessibility battery (keyboard navigation + activation,
-      // visible focus, accessible names, heading hierarchy).
-      await keyboardNavigationCheck(report, run.page);
-      await visibleFocusCheck(report, run.page);
-      await accessibleNamesCheck(report, run.page);
-      await headingHierarchyCheck(report, run.page);
       await packagingIdentityCheck(report, options, run.proc.pid);
       report.check(
         "console-evidence-recorded",
