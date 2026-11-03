@@ -68,3 +68,19 @@ profile, driven via CDP (port 9333) using the ported `qa/desktop-release` harnes
 - Full wdio E2E battery not run locally (sandbox memory/disk); see handoff §4.
 - Windows installers verified by the CI workflow's own assertions + smoke battery (runner
   execution), not by a local Windows machine.
+
+## 6. CI smoke-battery findings (run 41737324935, SHA a0049bfc)
+
+The adapted unified-shell battery ran 26 checks on the Linux runner: **25 passed** —
+including the full golden-path journey (welcome branding → API-key skip → onboarding walk →
+New Task workspace markers → five-option New Tab launcher → PlayLiquid Console) — and both
+offline resilience checks. One genuine defect was caught and fixed:
+
+- **`a11y-visible-focus` FAIL** — `side-pane-toggle` and `window-control-close` render NO
+  keyboard focus indicator (`:focus-visible=true` but `outline: none`, no box-shadow ring, no
+  focused-vs-blurred style change). Root cause: the inherited global focus-outline kill left
+  desktop chrome controls without any indicator. **Fix:** themed 2px `--color-brand` outline
+  on `:focus-visible` for side-pane-toggle, window controls, settings, terminal and browser
+  toggles (`packages/ui/src/styles.css`, TL fix on top of worker-a's surface). This is the
+  smoke battery doing its job: a real accessibility defect, found on a real packaged build,
+  fixed and re-gated.

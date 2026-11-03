@@ -2423,3 +2423,18 @@ html[data-document-hidden] *::after {
 [data-scrollbar-active][data-scrollbar-dragging] {
   --zcode-scrollbar-thumb: color-mix(in oklab, var(--color-foreground) 45%, transparent);
 }
+
+/* PlayLiquid a11y — keyboard-visible focus on desktop chrome controls.
+   The inherited global focus-outline kill left the title-bar side-pane
+   toggle, window caption controls, settings and panel toggles without any
+   keyboard focus indicator (smoke-battery a11y-visible-focus finding,
+   2026-11-03). Restore a themed 2px ring for :focus-visible only — pointer
+   interaction is unaffected. */
+[data-testid="side-pane-toggle"]:focus-visible,
+[data-testid^="window-control-"]:focus-visible,
+[data-testid="task-settings-button"]:focus-visible,
+[data-testid="terminal-toggle"]:focus-visible,
+[data-testid="browser-toggle"]:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
