@@ -732,6 +732,11 @@ export default {
           electronVersion: desktopElectronVersion,
         }),
       );
+    }
+    if (actualWindowsTarget) {
+      // .zcode-install-manifest 对所有 Windows 产物（NSIS/便携 zip）无条件落盘：
+      // release workflow 的 Windows smoke harness 用它校验安装/卸载后的文件留存，
+      // 不能只在真实 CUA producer 存在时才生成（开源构建同样需要可校验的清单）。
       await runTimedAsync("afterPack:writeWindowsInstallManifest", () =>
         writeWindowsInstallManifest(context),
       );
