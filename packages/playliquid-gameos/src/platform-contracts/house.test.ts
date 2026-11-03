@@ -1,0 +1,131 @@
+/**
+ * House-rule tests for @playliquid/platform-contracts.
+ *
+ * E1 (one owner per mutable state): every exported vocabulary table is
+ * deeply frozen and contract fields are readonly (compile-time checks
+ * live in the per-module tests).
+ *
+ * E3 (provider SDKs do not leak into domain contracts): the package's
+ * only dependency is the workspace sibling
+ * `@playliquid/game-contracts` (module-dependency-matrix:
+ * platform-contracts | game-contracts) and sources import nothing else
+ * outside Node builtins (tests) and this package itself.
+ *
+ * Lock 18 surface discipline: no export performs authority actions —
+ * this package declares contracts and pure validators only.
+ */
+
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFile, readdir } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import * as contracts from "./index.js";
+
+const srcDir = dirname(fileURLToPath(import.meta.url));
+
+// [worker-b consolidation] The upstream "the only dependency is the
+// workspace sibling game-contracts" manifest test was retired: the
+// consolidated host package (@playliquid/gameos) declares only the React
+// peer, and the game-contracts dependency became a relative import inside
+// this module. The E3 import discipline stays pinned by the "sources import
+// only allowed specifiers" test below.
+
+test("house: sources import only allowed specifiers (relative, sibling, node builtins)", async () => {
+  const files = (await readdir(srcDir))
+    .filter((file) => file.endsWith(".ts") && !file.endsWith(".test.ts") && file !== "harness.ts");
+  assert.ok(files.length >= 12, `expected at least 12 contract modules, saw ${files.length}`);
+  for (const file of files) {
+    const text = await readFile(join(srcDir, file), "utf8");
+    const imports = [...text.matchAll(/(?:from|import)\s+["']([^"']+)["']/g)].map((match) => match[1] ?? "");
+    for (const specifier of imports) {
+      const allowed =
+        specifier.startsWith(".") ||
+        specifier === "@playliquid/game-contracts" ||
+        specifier.startsWith("node:");
+      assert.equal(
+        allowed,
+        true,
+        `${file} imports "${specifier}" — only relative imports, @playliquid/game-contracts and node: builtins are allowed`,
+      );
+    }
+  }
+});
+
+test("house: exported vocabularies are frozen (E1)", () => {
+  const frozenNames = [
+    "PLATFORM_AUTHORITY",
+    "PLATFORM_EVENT_KIND_PREFIX",
+    "PLATFORM_AUTHORITY_EVENT_KINDS",
+    "CAPABILITY_PERMISSIONS",
+    "SOCIAL_GRAPH_KINDS",
+    "SOCIAL_ACTIONS",
+    "ANALYTICS_PRIVACY_CLASSES",
+    "ANALYTICS_FORBIDDEN_PAYLOAD_KEYS",
+    "MODERATION_SURFACES",
+    "MODERATION_SEVERITY_ORDER",
+    "INTEGRITY_SIGNAL_KINDS",
+    "AI_PLAY_MODES",
+    "FORBIDDEN_INTEGRITY_FIELDS",
+    // PL-009 refinement vocabularies.
+    "BEHAVIORAL_EVIDENCE_KINDS",
+    "INTEGRITY_VERDICT_KINDS",
+    "VERDICT_CONFIDENCE_BANDS",
+    "FORBIDDEN_VERDICT_FIELDS",
+    "PARTICIPATION_DECLARATION_KINDS",
+    "ENFORCEMENT_ACTION_KINDS",
+    "ENTITLEMENT_LIFECYCLE_STATES",
+    "ENTITLEMENT_LIFECYCLE_TRANSITIONS",
+    "ENTITLEMENT_REVOCATION_REASONS",
+    "KERNEL_VALUE_KINDS",
+    "REPLAY_LANES",
+    "REPLAY_EXPECTATION_KINDS",
+    "EXPECTATION_OUTCOMES",
+  ];
+  for (const name of frozenNames) {
+    const table = (contracts as unknown as Record<string, unknown>)[name];
+    assert.ok(table !== undefined, `${name} is exported`);
+    assert.ok(Object.isFrozen(table), `${name} is frozen`);
+  }
+});
+
+test("house: PL-009 lifecycle transition tables are deeply frozen (E1)", () => {
+  const transitions = (
+    contracts as unknown as { ENTITLEMENT_LIFECYCLE_TRANSITIONS: Record<string, readonly string[]> }
+  ).ENTITLEMENT_LIFECYCLE_TRANSITIONS;
+  for (const state of Object.keys(transitions)) {
+    assert.ok(Object.isFrozen(transitions[state]), `transitions[${state}] is frozen`);
+  }
+  const bands = (contracts as unknown as { VERDICT_CONFIDENCE_BANDS: readonly object[] })
+    .VERDICT_CONFIDENCE_BANDS;
+  for (const entry of bands) {
+    assert.ok(Object.isFrozen(entry), "confidence band entry is frozen");
+  }
+});
+
+test("house: PL-009 refinement oracles are pure admission/validation surface (E1/E2)", () => {
+  assert.equal(typeof contracts.validateIntegrityRiskVerdict, "function");
+  assert.equal(typeof contracts.decideEnforcement, "function");
+  assert.equal(typeof contracts.validateEnforcementDecision, "function");
+  assert.equal(typeof contracts.admitLifecycleCommand, "function");
+  assert.equal(typeof contracts.validateSettlement, "function");
+  assert.equal(typeof contracts.admitSettlement, "function");
+  assert.equal(typeof contracts.authorizeReplayLaneRequest, "function");
+  assert.equal(typeof contracts.validateExpectationResult, "function");
+});
+
+test("house: no runtime authority leaks into the contract surface (E1/E2)", () => {
+  const exports = Object.keys(contracts);
+  const forbidden = exports.filter((name) => /^(apply|mutate|execute|dispatch|emit|commit|push)/.test(name));
+  assert.deepEqual(forbidden, []);
+  assert.equal(typeof contracts.validateCapabilityPolicy, "function");
+  assert.equal(typeof contracts.settleGrant, "function");
+  assert.equal(typeof contracts.checkTenantIsolation, "function");
+});
+
+test("house: the platform authority event vocabulary stays in its namespace (lock 18)", () => {
+  for (const kind of contracts.PLATFORM_AUTHORITY_EVENT_KINDS) {
+    assert.ok(kind.startsWith("platform."));
+  }
+  assert.ok(contracts.PLATFORM_AUTHORITY_EVENT_KINDS.length >= 9);
+});
