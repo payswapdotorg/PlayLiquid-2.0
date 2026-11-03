@@ -6,7 +6,9 @@ import {
   resolveForceUpdateRequirement,
   type ForceUpdateRequirement,
   type Locale,
+  ZCODE_PRODUCT_FLAVOR,
 } from "@zcode/shared";
+import { desktopProductIdentities } from "../../scripts/desktop-product-identity.mjs";
 import { requestForceAutoUpdate, type ForceAutoUpdateState } from "./autoUpdater.js";
 import { showForceUpdatePrompt } from "./forceUpdatePrompt.js";
 
@@ -193,9 +195,11 @@ export function formatForceUpdateDialogText(
   requirement: ForceUpdateRequirement,
   locale: Locale,
 ): ForceUpdateDialogText {
+  // RW-002：弹窗文案跟安装包身份（desktop-product-identity.mjs）同源，不出现 ZCode 字样。
+  const productName = desktopProductIdentities[ZCODE_PRODUCT_FLAVOR].productName;
   if (locale === "zh-CN") {
     return {
-      title: "需要升级 ZCode",
+      title: `需要升级 ${productName}`,
       message: "当前版本无法继续使用",
       detail: `当前版本：v${requirement.currentVersion}\n最低可用版本：v${requirement.minimalVersion}`,
       autoUpdateButton: "自动升级",
@@ -205,7 +209,7 @@ export function formatForceUpdateDialogText(
   }
 
   return {
-    title: "Update ZCode",
+    title: `Update ${productName}`,
     message: "The current version can no longer be used",
     detail: `Current version: v${requirement.currentVersion}\nMinimum supported version: v${requirement.minimalVersion}`,
     autoUpdateButton: "Auto update",

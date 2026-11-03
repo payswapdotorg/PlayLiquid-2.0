@@ -1,0 +1,252 @@
+{
+  "workPackage": "worker-c-packaging-release",
+  "owner": "worker-c",
+  "task": "3-c",
+  "branch": "worker-c/packaging-release",
+  "baseline": "a9fe401eede6e6e5e01be9048679c206fe6f02d9",
+  "files": [
+    {
+      "path": "packages/desktop/scripts/desktop-product-identity.mjs",
+      "change": "modified",
+      "reason": "RW-002 identity single source of truth: replaced the inherited ZCode identity table (dev.zcode.app / ZCode / zcode) with the proven PlayLiquid GameOS identity (org.playliquid.gameos / PlayLiquid GameOS / playliquid-gameos / PlayLiquid-GameOS / playliquid:// / ~/.playliquid-gameos / remoteUpdateFeedEnabled:false), added desktopApplicationNames, desktopDeepLinkSchemes, resolveDesktopLinuxArtifactBaseName; production/preview flavors stay parallel-installable."
+    },
+    {
+      "path": "packages/desktop/scripts/desktop-product-identity.d.mts",
+      "change": "modified",
+      "reason": "Colocated TS declarations kept in sync with the new identity module exports (new fields + new exported tables/functions)."
+    },
+    {
+      "path": "packages/desktop/scripts/desktop-product-identity.test.mjs",
+      "change": "added",
+      "reason": "Ported node:test suite (12 tests, zero dependencies) asserting internal identity consistency and full isolation from the ZCode upstream identity; verified green under plain node."
+    },
+    {
+      "path": "packages/desktop/test/desktopProductIdentity.test.ts",
+      "change": "modified",
+      "reason": "Baseline vitest suite asserted the old ZCode identity constants; updated expected objects to the PlayLiquid GameOS tables and added RW-002 isolation + remote-update-feed-disabled assertions so the suite does not fail against the ported module."
+    },
+    {
+      "path": "packages/desktop/electron-builder.config.js",
+      "change": "modified",
+      "reason": "Identity-scoped wiring only (targets/mac/nsis/pacman structure kept from our v3.17.2 baseline): homepage github.com/payswapdotorg/PlayLiquid-2.0 + author PlayLiquid <noreply@playliquid.org> in extraMetadata (deb/fpm metadata validation), protocols register desktopProductIdentity.deepLinkScheme (playliquid) instead of zcode, linux maintainer PlayLiquid + category Development;Game, Linux artifact base name PlayLiquid-GameOS via resolveDesktopLinuxArtifactBaseName, productName fallbacks and preview mac-signing error derive from the identity module, and .zcode-install-manifest is now written for EVERY Windows target (reference condition) so the Windows smoke battery can verify open-source builds."
+    },
+    {
+      "path": "packages/desktop/scripts/bundle.mjs",
+      "change": "modified",
+      "reason": "Ported the reference's --targets/-t (ZCODE_BUILDER_TARGETS) electron-builder variadic target list with known-target validation, required by the release workflow's single-pass Windows nsis,zip build; identity params were already module-driven; our newer mirror-fallback/createBundleProcessEnvs/retry logic and stampMacosUpdateManifests kept."
+    },
+    {
+      "path": "packages/desktop/package.json",
+      "change": "modified",
+      "reason": "Identity fields only: description 'PlayLiquid GameOS Desktop App', author 'PlayLiquid', productName 'PlayLiquid GameOS' (electron-builder default). The internal package name @zcode/desktop is deliberately unchanged."
+    },
+    {
+      "path": "packages/desktop/dev-app-update.yml",
+      "change": "modified",
+      "reason": "Dev electron-updater cache dir playliquid-gameos-dev-updater (mirrors identity updaterCacheDirName; isolated from the fork's zcode-dev-updater). Generic localhost:8081 placeholder + useMultipleRangeRequest:false + detectUpdateChannel:false (config) unchanged — auto-update stays disabled."
+    },
+    {
+      "path": "packages/desktop/src/main/desktopRuntimeEnv.ts",
+      "change": "modified",
+      "reason": "runtimeApplicationName derives from desktopApplicationNames (PlayLiquid GameOS Dev/Preview/production) so app.name, window title, single-instance lock and appData/<name> userData/sessionData are separated from any ZCode profile; runtimeHomePath now ignores the product-injected ZCODE_DESKTOP_HOME_DIR (data-root bootstrap value) so Electron app home stays the real user home."
+    },
+    {
+      "path": "packages/desktop/src/main/desktopDataBaseDirBootstrap.ts",
+      "change": "modified",
+      "reason": "RW-002 data-root isolation ported from the reference: services-layer data defaults to ~/.playliquid-gameos/.zcode instead of ZCode's ~/.zcode (custom dataBaseDir in setting.json and pre-set ZCODE_DESKTOP_HOME_DIR keep upstream priority; the product root is injected as the settings anchor). Our baseline had the default anchored at the user home (i.e. ~/.zcode) which would have collided with a real ZCode install."
+    },
+    {
+      "path": "packages/desktop/src/main/desktopDeepLinkUrl.ts",
+      "change": "modified",
+      "reason": "Deep-link parsing accepts the whitelisted schemes (playliquid / playliquid-preview + fork-compat zcode) via desktopDeepLinkSchemes instead of only zcode; registration is deliberately NOT done here."
+    },
+    {
+      "path": "packages/desktop/src/main/desktopOAuthDeepLink.ts",
+      "change": "modified",
+      "reason": "registerDeepLinkProtocol registers only the compile-time flavor's deepLinkScheme (playliquid) — a PlayLiquid install never steals ZCode's zcode:// handler; external-link dialog copy carries the PlayLiquid GameOS product name. Our newer Windows '--' argv hardening was kept (the reference predates it)."
+    },
+    {
+      "path": "packages/desktop/src/main/desktopLinuxDeepLinkRegistration.ts",
+      "change": "modified",
+      "reason": "User-level desktop entry / MIME ownership follow the product identity: playliquid-gameos.desktop, x-scheme-handler/playliquid, ownership marker 'Comment=PlayLiquid GameOS Desktop App', Categories Development;Game, productName/iconName defaults from the identity module (runtime identity uses the compile-time flavor)."
+    },
+    {
+      "path": "packages/desktop/src/main/desktopLinuxAppImageIcon.ts",
+      "change": "modified",
+      "reason": "AppImage user-level hicolor icon name derives from the identity linuxExecutableName (playliquid-gameos.png) instead of zcode.png."
+    },
+    {
+      "path": "packages/desktop/src/main/forceUpdateGuard.ts",
+      "change": "modified",
+      "reason": "Force-update dialog copy derives from the identity module (no hardcoded ZCode strings) for the day a PlayLiquid-owned feed exists; the guard itself is skipped at runtime while remoteUpdateFeedEnabled is false."
+    },
+    {
+      "path": "packages/desktop/src/main/index.ts",
+      "change": "modified",
+      "reason": "CRITICAL updater safety: initAutoUpdater's enabled condition and the remote force-update gate now additionally require desktopProductIdentities[ZCODE_PRODUCT_FLAVOR].remoteUpdateFeedEnabled (false for both flavors) on top of our baseline's build-time ZCODE_AUTO_UPDATE_ENABLED — the ZCode/Z.AI feed can never silently replace a PlayLiquid install; imports desktopProductIdentities from the identity module. (userData finding: app.setPath userData/sessionData derives from runtimeApplicationName — no hardcoded zcode path, no change needed there.)"
+    },
+    {
+      "path": "packages/desktop/build/icon.png",
+      "change": "modified",
+      "reason": "Binary copy (exact bytes) of the reference PlayLiquid icon family — 1024 master (412095 bytes)."
+    },
+    { "path": "packages/desktop/build/icon.ico", "change": "modified", "reason": "Binary copy (exact bytes) — PlayLiquid Windows icon set." },
+    { "path": "packages/desktop/build/icon.icns", "change": "modified", "reason": "Binary copy (exact bytes) — PlayLiquid macOS icon set." },
+    { "path": "packages/desktop/build/icon_installer.png", "change": "modified", "reason": "Binary copy (exact bytes) — installer-dedicated artwork." },
+    { "path": "packages/desktop/build/icon_installer.ico", "change": "modified", "reason": "Binary copy (exact bytes) — NSIS installer icon." },
+    { "path": "packages/desktop/build/icon_installer.icns", "change": "modified", "reason": "Binary copy (exact bytes) — DMG volume/installer icon." },
+    { "path": "packages/desktop/build/icon_windows.png", "change": "modified", "reason": "Binary copy (exact bytes) — Windows taskbar/window resource." },
+    { "path": "packages/desktop/build/icons/16x16.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 16." },
+    { "path": "packages/desktop/build/icons/24x24.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 24." },
+    { "path": "packages/desktop/build/icons/32x32.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 32." },
+    { "path": "packages/desktop/build/icons/48x48.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 48." },
+    { "path": "packages/desktop/build/icons/64x64.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 64." },
+    { "path": "packages/desktop/build/icons/128x128.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 128." },
+    { "path": "packages/desktop/build/icons/256x256.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 256." },
+    { "path": "packages/desktop/build/icons/512x512.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 512 (also the AppImage extraResources icon source)." },
+    { "path": "packages/desktop/build/icons/1024x1024.png", "change": "modified", "reason": "Binary copy (exact bytes) — hicolor 1024." },
+    {
+      "path": ".github/workflows/release-desktop.yml",
+      "change": "added",
+      "reason": "Cross-platform release pipeline ported from the proven reference (PLX-REL-001) and adapted to our baseline: linux-desktop + windows-desktop from the exact pinned SHA (Windows disables core.autocrlf before checkout for a byte-exact tree), publish gated on both (version-match refusal, merged GNU-format SHA256SUMS, BUILD-INFO.txt, immutable preview/<short-sha> prereleases with no --clobber, stable playliquid-gameos-v<version> via workflow_dispatch), publish-status always-on honesty job; pnpm 10.33.2 / Node 24.14.0; the reference's ZCODE_SKIP_REMOTE_ASSETS env was dropped because our v3.17.2 prepare-runtime-assets no longer stages remote assets in the build path."
+    },
+    {
+      "path": "qa/desktop-release/README.md",
+      "change": "added",
+      "reason": "Smoke-harness documentation adapted from the reference: provenance cited instead of the reference-only spec paths, our pre-A/B baseline context (ZCode v3.17.2 branding), reference station evidence deliberately not ported."
+    },
+    {
+      "path": "qa/desktop-release/scripts/run-smoke.mjs",
+      "change": "added",
+      "reason": "Linux packaged-app smoke CLI entrypoint (zero npm deps, Node >= 22) — forwards exit codes verbatim."
+    },
+    {
+      "path": "qa/desktop-release/scripts/run-ubuntu.sh",
+      "change": "added",
+      "reason": "Release-workflow Ubuntu recipe wrapper (CDP port 9333, display :89); doc comment corrected to the real playliquid-gameos executable name."
+    },
+    {
+      "path": "qa/desktop-release/scripts/run-windows.mjs",
+      "change": "added",
+      "reason": "Windows smoke thin driver (pwsh 7 preferred, PowerShell 5.1 fallback)."
+    },
+    {
+      "path": "qa/desktop-release/scripts/run-windows.ps1",
+      "change": "added",
+      "reason": "Windows smoke harness (UTF-8 BOM preserved for the 5.1 parser): checksums, portable zip structure/launch, silent NSIS install/uninstall, .zcode-install-manifest, Start Menu shortcut, HKCU registry identity, data retention; identity constants match the ported identity module."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/cdp.mjs",
+      "change": "added",
+      "reason": "Minimal CDP client (built-in WebSocket) for the packaged-app battery."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/checks.mjs",
+      "change": "added",
+      "reason": "Identity/shell/navigation/real-operation checks against the packaged renderer."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/checks-a11y.mjs",
+      "change": "added",
+      "reason": "Keyboard navigation/activation, visible focus, accessible names, heading hierarchy checks (CDP-driven)."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/checks-artifact.mjs",
+      "change": "added",
+      "reason": "SHA256SUMS verification and packaging-identity checks (desktop entry / deb metadata serve the PlayLiquid identity)."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/checks-contract.mjs",
+      "change": "added",
+      "reason": "Frozen shell contracts: escape-hatch label + first-run empty-state vocabulary."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/checks-geometry.mjs",
+      "change": "added",
+      "reason": "Three-width computed-geometry battery (1280x800 real window, 480px minimum, 390x844 emulated)."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/checks-journey.mjs",
+      "change": "added",
+      "reason": "Real user journeys through the production-wired ports with honest typed-outcome states."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/checks-offline.mjs",
+      "change": "added",
+      "reason": "Dead-proxy offline resilience scenario."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/config.mjs",
+      "change": "added",
+      "reason": "Single place for product-specific constants (identity markers, frozen shell vocabulary, CDP port 9333, viewports, timeouts, BASELINE_EXPECTED_FAILURES for the pre-A/B baseline) — the TL re-runs the same harness after A+B integration without code changes."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/geometry-metrics.mjs",
+      "change": "added",
+      "reason": "Computed bounding-box metric extraction for the geometry battery."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/launcher.mjs",
+      "change": "added",
+      "reason": "Clean-profile packaged-app launcher (neutral cwd, FUSE/extract-and-run handling, chmod +x for downloaded AppImages)."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/memwatch.mjs",
+      "change": "added",
+      "reason": "Memory gate (>= 600 MB before every Electron launch) + exact process-group cleanup."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/report.mjs",
+      "change": "added",
+      "reason": "Always-raw-status report (report.json + transcript.txt) with baseline-expectations annotation."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/run-helpers.mjs",
+      "change": "added",
+      "reason": "Small shared helpers (distro detection, log tail)."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/run-lifecycle.mjs",
+      "change": "added",
+      "reason": "Run startup/render/console-capture and clean-shutdown lifecycle."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/run.mjs",
+      "change": "added",
+      "reason": "Harness orchestrator (main + offline scenarios, generous product-shell wait for first-run preparation)."
+    },
+    {
+      "path": "qa/desktop-release/src/harness/xvfb.mjs",
+      "change": "added",
+      "reason": "Xvfb display management with :80-:89 fallback."
+    },
+    { "path": "qa/desktop-release/src/index.ts", "change": "added", "reason": "Module public entrypoint (manifest re-export), provenance-adapted doc reference." },
+    { "path": "qa/desktop-release/src/module.ts", "change": "added", "reason": "Module manifest (qa-desktop-release), provenance-adapted doc reference." },
+    { "path": "qa/desktop-release/src/contract.ts", "change": "added", "reason": "Module public contract re-export." },
+    { "path": "qa/desktop-release/fixtures/clean-profile/README.md", "change": "added", "reason": "Documents the deliberately-empty clean-profile fixture discipline." },
+    {
+      "path": ".gitignore",
+      "change": "modified",
+      "reason": "Ignore qa/desktop-release/evidence/ run outputs (report.json/screenshots/logs are per-run regenerable; keeps the working tree and the governance verifier's untracked scan clean)."
+    }
+  ],
+  "findings": {
+    "userDataSeparation": "VERIFIED SAFE, no fix needed in main/index.ts: app.setPath(\"userData\"/\"sessionData\") consumes runtimeUserDataPath/runtimeSessionDataPath = join(appData, runtimeApplicationName), and runtimeApplicationName now resolves from desktopApplicationNames (PlayLiquid GameOS / PlayLiquid GameOS Preview / PlayLiquid GameOS Dev) — Electron profile lives at ~/.config/PlayLiquid GameOS, fully separated from ZCode's ~/.config/ZCode. The services-layer data root WAS a real collision in our baseline: desktopDataBaseDirBootstrap defaulted to the user home (~/.zcode, shared with a real ZCode install); ported the reference's fix so it now defaults to ~/.playliquid-gameos/.zcode, with the product-injected ZCODE_DESKTOP_HOME_DIR recognized by desktopRuntimeEnv as a settings anchor rather than an Electron home override.",
+    "updaterSafety": "Our v3.17.2 baseline already gates auto-update on the build-time ZCODE_AUTO_UPDATE_ENABLED (false in open-source builds; docs/desktop/build-time-optional-capabilities.md) and keeps the generic localhost:8081 publish placeholder with detectUpdateChannel:false. The reference's remoteUpdateFeedEnabled identity gate was ported ON TOP: enabled = production flavor AND build-time capability AND identity.remoteUpdateFeedEnabled (false) — updater and force-update guard can never run against the ZCode/Z.AI feed.",
+    "publicLogoIcons": "public/logo/icons/** (9 sizes + icon.ico + icon.icns) is byte-identical between the reference repo and our v3.17.2 baseline (the reference never changed that inherited favicon family; its PlayLiquid app identity lives in packages/desktop/build only). The instructed copy was performed and verified — it is a no-op producing zero git changes; the path stays valid for README/web favicon references (Worker A owns the public/logo branding surface and can decide to swap the favicon artwork).",
+    "scriptNameDifferences": [
+      "pnpm --filter @zcode/desktop run build — verified to exist in our repo (build = prepare:runtime-assets + build:no-runtime-assets); kept as-is.",
+      "ZCODE_SKIP_REMOTE_ASSETS (reference Windows env) — does NOT exist in our v3.17.2 prepare-runtime-assets.mjs; remote assets were moved out of the desktop build path entirely, so the env was dropped from the workflow (documented in the workflow comments).",
+      "bundle --targets nsis,zip — ported from the reference into our bundle.mjs (our baseline lacked it); our newer createBundleProcessEnvs split-env mirror handling was preserved.",
+      ".zcode-install-manifest — our baseline wrote it only when a real CUA producer was packaged; restored the reference's unconditional Windows-target condition because the Windows smoke battery depends on it (open-source builds must stay verifiable).",
+      "installer.nsh / patch-nsis-install-section.mjs — already present and byte-equivalent in our baseline (only comment wording differs); untouched.",
+      "dev-app-update.yml / desktopEarlyDataBaseDirBootstrap.ts — same shape as the reference; only the cache-dir naming needed the identity change."
+    ],
+    "protectedSurfaceNote": "packages/desktop/src/main/** is listed under protected surfaces in CHANGE-POLICY.md (permission/policy paths). The files touched there are identity-scoped only (product name/scheme/data-root/updater gate), none are permission or policy paths; desktopRuntimeEnv.ts is explicitly allowed by the policy's identity row."
+  },
+  "integrationNotes": [
+    "scripts/governance/verify-change-policy.mjs requires every modified baseline file to be listed in docs/governance/authorized-modifications.json (path/owner/reason/change). The entries above carry those fields; the TL should merge them into authorized-modifications.json (modifications: []) when integrating this branch so CI passes.",
+    "The smoke harness product-shell markers (config.mjs) are the frozen reference vocabulary; they are expected to pass only after Workers A+B land — until then run-ubuntu.sh fails those checks (use --baseline-expectations on the pre-A/B baseline).",
+    "Worker A owns about.ts/desktopMenu.ts/i18n/README/splash; their ZCode-branded surfaces were deliberately not touched by this package."
+  ]
+}
