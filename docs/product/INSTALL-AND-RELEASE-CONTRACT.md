@@ -81,3 +81,19 @@ unknown-publisher warnings are disclosed on every release. No signing is claimed
   `SHA256SUMS`, `BUILD-INFO.txt` under prerelease `preview/42b23514`.
 - The dashboard surfaces the live workflow + release status and the download links as soon as
   they publish.
+
+## 7. First published preview release (2026-11-04)
+
+**`preview/6502e2e320` — "PlayLiquid GameOS preview 6502e2e320 (3.17.2)"** (immutable prerelease,
+tagged at the built commit; both OS jobs + smoke batteries green):
+
+- https://github.com/payswapdotorg/PlayLiquid-2.0/releases/download/preview/6502e2e320/PlayLiquid.GameOS-3.17.2-win-x64.exe (NSIS installer, 190.0 MB)
+- https://github.com/payswapdotorg/PlayLiquid-2.0/releases/download/preview/6502e2e320/PlayLiquid.GameOS-3.17.2-win-x64.zip (portable, 246.6 MB)
+- https://github.com/payswapdotorg/PlayLiquid-2.0/releases/download/preview/6502e2e320/PlayLiquid-GameOS-3.17.2-linux-amd64.deb (171.6 MB)
+- https://github.com/payswapdotorg/PlayLiquid-2.0/releases/download/preview/6502e2e320/PlayLiquid-GameOS-3.17.2-linux-x86_64.AppImage (231.3 MB)
+- https://github.com/payswapdotorg/PlayLiquid-2.0/releases/download/preview/6502e2e320/SHA256SUMS
+- https://github.com/payswapdotorg/PlayLiquid-2.0/releases/download/preview/6502e2e320/BUILD-INFO.txt
+
+Linux smoke battery: 26/26 checks pass on the packaged .deb/AppImage builds, including the
+unified-shell golden-path journey. Windows smoke battery passed on the NSIS/portable builds.
+Windows installers are unsigned (disclosed in the release notes).

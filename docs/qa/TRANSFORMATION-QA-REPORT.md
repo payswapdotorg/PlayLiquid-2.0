@@ -84,3 +84,17 @@ offline resilience checks. One genuine defect was caught and fixed:
   toggles (`packages/ui/src/styles.css`, TL fix on top of worker-a's surface). This is the
   smoke battery doing its job: a real accessibility defect, found on a real packaged build,
   fixed and re-gated.
+
+## 7. CI release iteration record (honest)
+
+| Run | SHA | Linux | Windows | Outcome |
+|---|---|---|---|---|
+| 41727506560 | 42b23514 | smoke FAIL (old gameos-shell markers + a11y crash) | success | publish skipped — reference-era harness expectations |
+| 41729123475 | f280ecd3 | smoke FAIL (same) | — | cancelled by newer runs |
+| 41737324935 | a0049bfc | 25/26 — **real a11y-visible-focus defect caught** | success | publish skipped; defect fixed (76e99d5f) |
+| 41740600855 | 76e99d5f (+re-run) | FAIL (pnpm esbuild rename flake, then fix ineffective — `!important` needed) | success | install retry added (1ce30460); CSS specificity fixed (6502e2e3) |
+| **41745882461** | **6502e2e3** | **success — 26/26** | **success** | **preview/6502e2e320 PUBLISHED** |
+
+The battery did its job: it caught a genuine accessibility defect (invisible keyboard focus on
+chrome controls), and the fix required understanding the inherited `!important` focus-kill —
+two honest iterations, fully recorded.
