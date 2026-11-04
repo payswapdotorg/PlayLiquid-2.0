@@ -156,7 +156,16 @@ jobs:
           sudo apt-get install -y libarchive-tools rpm xvfb libfuse2
 
       - name: Install dependencies (frozen lockfile)
-        run: pnpm install --frozen-lockfile
+        # Retry: transient pnpm postinstall race (esbuild extracting while a nested
+        # tsup/node_modules/esbuild link is renamed) observed on 2026-11-03 run
+        # 41740600855 — ERR_PNPM_ENOENT rename _tmp_ -> esbuild. Same lockfile,
+        # same runner image: pure flake; retry once after backoff.
+        run: |
+          pnpm install --frozen-lockfile || {
+            echo "::warning::pnpm install failed (transient postinstall race) — retrying after 20s"
+            sleep 20
+            pnpm install --frozen-lockfile
+          }
 
       - name: Build desktop package
         run: pnpm --filter @zcode/desktop run build
@@ -349,7 +358,16 @@ jobs:
 
       - name: Install dependencies (frozen lockfile)
         shell: pwsh
-        run: pnpm install --frozen-lockfile
+        # Retry: transient pnpm postinstall race (esbuild extracting while a nested
+        # tsup/node_modules/esbuild link is renamed) observed on 2026-11-03 run
+        # 41740600855 — ERR_PNPM_ENOENT rename _tmp_ -> esbuild. Same lockfile,
+        # same runner image: pure flake; retry once after backoff.
+        run: |
+          pnpm install --frozen-lockfile || {
+            echo "::warning::pnpm install failed (transient postinstall race) — retrying after 20s"
+            sleep 20
+            pnpm install --frozen-lockfile
+          }
 
       - name: Build desktop package
         shell: pwsh
