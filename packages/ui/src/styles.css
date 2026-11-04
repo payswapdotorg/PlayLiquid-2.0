@@ -2425,16 +2425,20 @@ html[data-document-hidden] *::after {
 }
 
 /* PlayLiquid a11y — keyboard-visible focus on desktop chrome controls.
-   The inherited global focus-outline kill left the title-bar side-pane
-   toggle, window caption controls, settings and panel toggles without any
-   keyboard focus indicator (smoke-battery a11y-visible-focus finding,
-   2026-11-03). Restore a themed 2px ring for :focus-visible only — pointer
-   interaction is unaffected. */
+   The inherited global focus-outline kill (see the !important block above:
+   system-highlight / double-frame bugfix) also erased every keyboard focus
+   indicator on the title-bar side-pane toggle, window caption controls,
+   settings and panel toggles (smoke-battery a11y-visible-focus finding,
+   2026-11-03 + 2026-11-04 run 41740600855 re-run). Restore a themed 2px ring
+   for :focus-visible ONLY on these chrome controls: higher specificity
+   (0,2,0) + !important overrides the global kill for these selectors alone,
+   while inputs/dialogs/remote controls keep the upstream no-double-frame
+   behavior. Pointer interaction is unaffected. */
 [data-testid="side-pane-toggle"]:focus-visible,
 [data-testid^="window-control-"]:focus-visible,
 [data-testid="task-settings-button"]:focus-visible,
 [data-testid="terminal-toggle"]:focus-visible,
 [data-testid="browser-toggle"]:focus-visible {
-  outline: 2px solid var(--color-brand);
-  outline-offset: 2px;
+  outline: 2px solid var(--color-brand) !important;
+  outline-offset: 2px !important;
 }
